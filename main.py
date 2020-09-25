@@ -3,14 +3,8 @@ import scipy.io.wavfile as wavfile
 import scipy
 import scipy.fftpack as fftpk
 import numpy as np
-import audioop
 import wave
-import contextlib
-import mingus
-import os 
 import naiveGuesser
-from mingus.containers import NoteContainer
-from mingus.midi import midi_file_out
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
 
@@ -43,16 +37,14 @@ def generateFrequencyNames():
 def normalizeFFT(FFT):
     #normalize FFT where biggest peak's amplitude is 1.0
     largest = 0
-    largestFreq = 0
     for x in range(0,len(peaks)):
         if (largest< FFT[peaks[x]]):
             largest = FFT[peaks[x]]
-            largestFreq = freqs[peaks[x]]
     return FFT/largest
 
 
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
+#dir_path = os.path.dirname(os.path.realpath(__file__))
 listFrequencies = generateFrequencies()
 frequencyNames = generateFrequencyNames()
 
@@ -76,7 +68,7 @@ peaks = [x for x in peaks if freqs[x]>=0] #get rid of negative peaks.
 
 FFT = normalizeFFT(FFT)
 
-peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) #find the peaks of audio
+peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) #find the peaks of the normalized graph
 peaks = [x for x in peaks if freqs[x]>=0] #get rid of negative peaks.
 
 
@@ -88,7 +80,7 @@ freqAmp = sorted(freqAmp, key = lambda x: x[1], reverse=1)
 #print(freqAmp)
 
 
-peakList= []
+peakList = []
 for y in range(len(freqAmp)):
     frequency = min(listFrequencies, key=lambda x:abs(x-freqAmp[int(y)][0]))
     index = listFrequencies.index(frequency)
