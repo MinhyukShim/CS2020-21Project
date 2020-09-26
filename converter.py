@@ -51,11 +51,8 @@ FFT = abs(scipy.fft.fft(signal))
 freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) 
 
 
-peaks, _ = find_peaks(FFT,distance=25) #find the peaks of audio
-peaks = [x for x in peaks if freqs[x]>=0] #get rid of negative peaks.
-
 #normalize FFT where biggest peak's amplitude is 1.0
-FFT = utils.normalizeFFT(FFT,peaks)
+FFT = utils.normalizeFFT(FFT,freqs)
 
 
 peaks, _ = find_peaks(FFT,prominence=0.1, height=0.05) #find the peaks of audio

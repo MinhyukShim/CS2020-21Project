@@ -15,7 +15,7 @@ frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8'
 
 
 
-testfile = "sounds/Cmaj7.wav"
+testfile = "sounds/CGC.wav"
 
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -28,12 +28,7 @@ FFT = abs(scipy.fft.fft(signal)) #FFT the signal
 freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
 
 
-#find initial peaks and get rid of negative peaks in order to normalize.
-peaks, _ = find_peaks(FFT,distance=25) 
-peaks = [x for x in peaks if freqs[x]>=0] 
-
-
-FFT = utils.normalizeFFT(FFT,peaks) #scale the FFT so that the largest peak has an amplitude of 1.0
+FFT = utils.normalizeFFT(FFT,freqs) #scale the FFT so that the largest peak has an amplitude of 1.0
 
 
 #find the peaks of the normalized graph
@@ -55,7 +50,7 @@ for y in range(len(freqAmp)):
     frequency = min(listFrequencies, key=lambda x:abs(x-freqAmp[int(y)][0])) #get closest frequency
     index = listFrequencies.index(frequency) #get the index/note number
     peakList.append([frequencyNames[index],index,freqAmp[int(y)][1]])
-
+#print(peakList)
 print(naiveGuesser.makeGuess(peakList))
 
 

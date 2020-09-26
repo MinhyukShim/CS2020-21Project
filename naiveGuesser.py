@@ -35,6 +35,33 @@ def checkLargestDifference(note,noteList,fingerRange):
     return True
 
 
+# Attempt to remove false positive octaves.
+def checkOctaves(notes,peakList):
+
+    #the sum of amplitudes in the peaklist shouldnt exceed octaveAmpLimit, if it does then an octave most likely is played
+    octaveAmpLimit = 1.5
+    deleteList=[]
+    for x in range (0, len(notes)):
+        total = 0
+        for y in range(0, len(peakList)):
+
+            #add amplitudes of all the peaks at the octave.
+            if( int(notes[x][1])+12 == int(peakList[y][1])):
+                total += float(peakList[y][2])
+
+        #if the sum of amplitudes is less tan 1.5 then add it to the delete list with the notenumber + octave to index the correct note to remove
+        if(total<1.5):
+            deleteList.append([int(notes[x][1])+12,total])
+
+    # go through the delete lsit
+    for x in range(len(deleteList)):
+        for y in range(len(notes)):
+
+            #check if the number is in the list of potential notes and if the loudest peak is quiet.
+            if((deleteList[x][0] == int(notes[y][1]) ) and float(notes[y][2]) < octaveAmpLimit/2):
+                notes = np.delete(notes, y, 0)
+    return notes             
+
 #returns a naive guess of the notes given.
 def makeGuess(peakList):
     fingerNumbers = 5
@@ -54,5 +81,6 @@ def makeGuess(peakList):
                         fingerNumbers -= 1
                         notes = np.append(notes,np.array([testNote]),axis=0)
 
-
+    #check to remove if an octave needs to be removed.
+    notes = checkOctaves(notes,peakList)
     return notes

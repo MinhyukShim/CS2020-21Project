@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.signal import find_peaks
 
 #list of frequencies of piano notes from [27.5 ... 4186.009]
 def generateFrequencies():
@@ -17,7 +18,7 @@ def generateFrequencyNames(listFrequencies):
 
     currentNote = 0 #iterates through note names
     octave = 0 #iterates if current note is a "C"
-    for x in range (len(listFrequencies)):
+    for _ in range (len(listFrequencies)):
         if (noteNames[currentNote] == "C"):
             octave +=1
         frequencyNames.append(noteNames[currentNote]+"-"+str(octave))
@@ -28,7 +29,10 @@ def generateFrequencyNames(listFrequencies):
     return frequencyNames
 
 #normalize FFT where biggest peak's amplitude is 1.0
-def normalizeFFT(FFT,peaks):
+def normalizeFFT(FFT,freqs):
+    
+    peaks, _ = find_peaks(FFT,distance=25) #find the peaks of audio
+    peaks = [x for x in peaks if freqs[x]>=0] #get rid of negative peaks.
     largest = 0
     for x in range(0,len(peaks)):
         if (largest< FFT[peaks[x]]):
