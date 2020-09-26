@@ -7,9 +7,12 @@
 # 2. Go down the list from loudest notes and see if it's within finger range.
 # 3. Add it to the list and repeat until out of fingers or peaks.
 
-# Pretty accuate. Usually gets all notes but also adds octaves that weren't played due to piano overtones/harmonics.
-# Peaks of octaves are hard to tell if actually played or a harmonic when looking at peak amplitudes.
 
+# Pretty accuate. Usually gets all notes but also adds octaves that weren't played due to piano overtones/harmonics.
+# Peaks of octaves are hard to tell if actually played or just a harmonic when looking at peak amplitudes.
+# Breaks down at really low notes: e.g. D-2
+
+# checkOctaves attempts to remove false positives on octaves. 
 
 import numpy as np
 
@@ -54,12 +57,15 @@ def checkOctaves(notes,peakList):
             deleteList.append([int(notes[x][1])+12,total])
 
     # go through the delete lsit
+    print(deleteList)
+    indexes = []
     for x in range(len(deleteList)):
         for y in range(len(notes)):
 
-            #check if the number is in the list of potential notes and if the loudest peak is quiet.
+            #check if the notenumber is in the list of potential notes and if the loudest peak is quiet.
             if((deleteList[x][0] == int(notes[y][1]) ) and float(notes[y][2]) < octaveAmpLimit/2):
-                notes = np.delete(notes, y, 0)
+                indexes.append(y)
+    notes = np.delete(notes, indexes, 0)
     return notes             
 
 #returns a naive guess of the notes given.
@@ -82,5 +88,6 @@ def makeGuess(peakList):
                         notes = np.append(notes,np.array([testNote]),axis=0)
 
     #check to remove if an octave needs to be removed.
+    newNotes = notes
     notes = checkOctaves(notes,peakList)
     return notes

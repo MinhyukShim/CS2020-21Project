@@ -15,7 +15,7 @@ frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8'
 
 
 
-testfile = "sounds/CGC.wav"
+testfile = "sounds/LowBassTreble.wav"
 
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -35,30 +35,22 @@ FFT = utils.normalizeFFT(FFT,freqs) #scale the FFT so that the largest peak has 
 peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
 peaks = [x for x in peaks if freqs[x]>=0] 
 
-
+peaksLow, _ = find_peaks(FFT,height=[0.01,0.05], prominence= 0.01  )
+peaksLow = [x for x in peaksLow if freqs[x]>=0 and freqs[x]<100 and freqs[x]>=listFrequencies[0]-1] 
 #create list of peak frequencies with their relative amplitudes.
-freqAmp = [] 
-for x in range(0,len(peaks)):
-    freqAmp.append([freqs[peaks[x]],FFT[peaks[x]]])   
-
-
-freqAmp = sorted(freqAmp, key = lambda x: x[1], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
+freqAmp = utils.createListOfPeaks(peaks,freqs,FFT)
 
 #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp]]
-peakList = []
-for y in range(len(freqAmp)):
-    frequency = min(listFrequencies, key=lambda x:abs(x-freqAmp[int(y)][0])) #get closest frequency
-    index = listFrequencies.index(frequency) #get the index/note number
-    peakList.append([frequencyNames[index],index,freqAmp[int(y)][1]])
-#print(peakList)
-print(naiveGuesser.makeGuess(peakList))
+
+closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
+print(naiveGuesser.makeGuess(closestNoteList))
 
 
 plt.plot(freqs[range(len(FFT)//2)], FFT[range(len(FFT)//2)])       #x = frequencies, y = FFT amplitude
 
 
 plt.plot(freqs[peaks],FFT[peaks], "x")  #mark peaks with x
-
+plt.plot(freqs[peaksLow],FFT[peaksLow], "x")
 
 axes = plt.gca()
 axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         

@@ -38,3 +38,22 @@ def normalizeFFT(FFT,freqs):
         if (largest< FFT[peaks[x]]):
             largest = FFT[peaks[x]]
     return FFT/largest
+
+
+#create list of peak frequencies with their relative amplitudes.
+def createListOfPeaks(peaks,freqs,FFT):
+    freqAmp = [] 
+    for x in range(0,len(peaks)):
+        freqAmp.append([freqs[peaks[x]],FFT[peaks[x]]])   
+
+    freqAmp = sorted(freqAmp, key = lambda x: x[1], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
+    return freqAmp
+
+#gets the list of freqAmp and matches it to the closest frequencies in listFrequencies. applies the index to the corresponding in frequencyNames
+def matchFreqToNote(freqAmp, frequencyNames, listFrequencies):
+    closestNoteList = []
+    for y in range(len(freqAmp)):
+        frequency = min(listFrequencies, key=lambda x:abs(x-freqAmp[int(y)][0])) #get closest frequency
+        index = listFrequencies.index(frequency) #get the index/note number
+        closestNoteList.append([frequencyNames[index],index,freqAmp[int(y)][1]])
+    return closestNoteList
