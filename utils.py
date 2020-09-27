@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
 
-#list of frequencies of piano notes from [27.5 ... 4186.009]
+#list of frequencies of piano notes from [27.5 ... 4186.009] using 12-tone equal temperament
 def generateFrequencies():
     listFrequencies = []
     aFourTuning = 440.0
@@ -40,13 +40,22 @@ def normalizeFFT(FFT,freqs):
     return FFT/largest
 
 
-#create list of peak frequencies with their relative amplitudes.
+#create list of peak frequencies sorted by their relative amplitudes descending
 def createListOfPeaks(peaks,freqs,FFT):
     freqAmp = [] 
     for x in range(0,len(peaks)):
         freqAmp.append([freqs[peaks[x]],FFT[peaks[x]]])   
 
     freqAmp = sorted(freqAmp, key = lambda x: x[1], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
+    return freqAmp
+
+#create list of peak frequencies sorted by their frequencies ascending
+def createListPeaksFreqs(peaks,freqs,FFT):
+    freqAmp = [] 
+    for x in range(0,len(peaks)):
+        freqAmp.append([freqs[peaks[x]],FFT[peaks[x]]])   
+
+    freqAmp = sorted(freqAmp, key = lambda x: x[0], reverse=0) # [[freq of peak, amp]] sorted by relative amplitude descending.
     return freqAmp
 
 #gets the list of freqAmp and matches it to the closest frequencies in listFrequencies. applies the index to the corresponding in frequencyNames

@@ -10,9 +10,15 @@
 
 # Pretty accuate. Usually gets all notes but also adds octaves that weren't played due to piano overtones/harmonics.
 # Peaks of octaves are hard to tell if actually played or just a harmonic when looking at peak amplitudes.
-# Breaks down at really low notes: e.g. D-2
 
-# checkOctaves attempts to remove false positives on octaves. 
+
+# checkOctaves attempts to remove false positives on octaves. by checking if the octave is loud enough or has multiple harmonics. Removes quiet octaves. (can lead to false negatives)
+# Arguably, having only false positives for sheet music is better than false negatives. since a person could probably figure out whether that octave is played or not.
+# However, in terms of "pure accuracy", removing octaves may be better.
+
+# Breaks down at really low notes: e.g. D-2. The normalized FFT is really messy. (see A-0). the harmonics of low notes creates lots of peaks.
+# harmonic peaks are louder than the fundamental frequency. https://en.wikipedia.org/wiki/Harmonic_series_(music)
+
 
 import numpy as np
 
