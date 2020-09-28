@@ -17,7 +17,7 @@
 # However, in terms of "pure accuracy", removing octaves may be better.
 
 # Breaks down at really low notes: e.g. D-2. The normalized FFT is really messy. (see A-0). the harmonics of low notes creates lots of peaks.
-# harmonic peaks are louder than the fundamental frequency. https://en.wikipedia.org/wiki/Harmonic_series_(music)
+# Some of these harmonic peaks are louder than the fundamental frequency. https://en.wikipedia.org/wiki/Harmonic_series_(music)
 
 
 import numpy as np
@@ -48,7 +48,7 @@ def checkLargestDifference(note,noteList,fingerRange):
 def checkOctaves(notes,peakList):
 
     #the sum of amplitudes in the peaklist shouldnt exceed octaveAmpLimit, if it does then an octave most likely is played
-    octaveAmpLimit = 1.5
+    octaveAmpLimit = 1.0
     deleteList=[]
     for x in range (0, len(notes)):
         total = 0
@@ -63,7 +63,7 @@ def checkOctaves(notes,peakList):
             deleteList.append([int(notes[x][1])+12,total])
 
     # go through the delete lsit
-    print(deleteList)
+    #print(deleteList)
     indexes = []
     for x in range(len(deleteList)):
         for y in range(len(notes)):
@@ -76,6 +76,9 @@ def checkOctaves(notes,peakList):
 
 #returns a naive guess of the notes given.
 def makeGuess(peakList):
+    
+    peakList = sorted(peakList, key = lambda x: x[2], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
+    #print(peakList)
     fingerNumbers = 5
     fingerRange = 13 # 13 = octave
 

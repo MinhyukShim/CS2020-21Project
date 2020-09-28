@@ -15,7 +15,7 @@ frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8'
 
 
 
-testfile = "notes/archive/A-0.wav"
+testfile = "sounds/Fdim.wav"
 
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -35,15 +35,26 @@ FFT = utils.normalizeFFT(FFT,freqs) #scale the FFT so that the largest peak has 
 peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
 peaks = [x for x in peaks if freqs[x]>=0] 
 
-peaksLow, _ = find_peaks(FFT,height=[0.01,0.05], prominence= 0.01  )
+freqAmp = utils.createListOfPeaks(peaks,freqs,FFT) # [[Freq,Amplitude]] #sorted by ascending frequency like peaks
 
-freqAmp = utils.createListOfPeaks(peaks,freqs,FFT)
 #print(freqAmp)
 
-#use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp]]
+#use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
 closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
-print(naiveGuesser.makeGuess(closestNoteList))
+#closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
+closestNoteList = utils.removeHarmonics(closestNoteList,listFrequencies)
+print(closestNoteList)
 
+print("")
+
+guess = naiveGuesser.makeGuess(closestNoteList)
+print(" Note | NoteNum. | Amp | Freq")
+print(guess)
+print("Predicted Notes: ")
+stringGuess = ""
+for x in range(len(guess)):
+    stringGuess += guess[x][0] + " "
+print(stringGuess)
 
 plt.plot(freqs[range(len(FFT)//2)], FFT[range(len(FFT)//2)])       #x = frequencies, y = FFT amplitude
 
