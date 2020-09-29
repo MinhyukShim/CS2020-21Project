@@ -41,6 +41,7 @@ def normalizeFFT(FFT,freqs):
 
 
 # helps discriminate against peaks that are high but quite far from an actual note (helps eliminate potential harmonics)
+# havent used https://en.wikipedia.org/wiki/Cent_(music) but could use for more accuracy?
 def multiplyDifference(freqAmp, closestNoteList, listFrequencies): 
     for x in range(len(freqAmp)):
         difference = abs(float(freqAmp[x][0])-listFrequencies[int(closestNoteList[x][1])])
