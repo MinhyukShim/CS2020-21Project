@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
 
@@ -46,8 +47,12 @@ def multiplyDifference(freqAmp, closestNoteList, listFrequencies):
     for x in range(len(freqAmp)):
         difference = abs(float(freqAmp[x][0])-listFrequencies[int(closestNoteList[x][1])])
         percentageDifference = difference/listFrequencies[int(closestNoteList[x][1])]
+        #print(float(freqAmp[x][0]), listFrequencies[int(closestNoteList[x][1])])
 
-        closestNoteList[x][2] = float(closestNoteList[x][2]) * 1/(difference**2+1)
+        #print(" cent: ")
+        centDifference = abs(1200 * math.log(float(freqAmp[x][0])/listFrequencies[int(closestNoteList[x][1])], 2))
+        #print(centDifference)
+        closestNoteList[x][2] = float(closestNoteList[x][2]) * 1/(centDifference**2 + 1 )
 
     #closestNoteList = sorted(closestNoteList, key = lambda x: x[1], reverse=0) # [[freq of peak, amp]] sorted by relative amplitude descending.
     #print(closestNoteList)

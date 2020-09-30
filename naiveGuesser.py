@@ -19,7 +19,6 @@
 # Breaks down at really low notes: e.g. D-2. The normalized FFT is really messy. (see A-0). the harmonics of low notes creates lots of peaks.
 # Some of these harmonic peaks are louder than the fundamental frequency. https://en.wikipedia.org/wiki/Harmonic_series_(music)
 
-
 import numpy as np
 
 #returns true if the tentative note given already exists in the guess notes list
@@ -48,7 +47,7 @@ def checkLargestDifference(note,noteList,fingerRange):
 def checkOctaves(notes,peakList):
 
     #the sum of amplitudes in the peaklist shouldnt exceed octaveAmpLimit, if it does then an octave most likely is played
-    octaveAmpLimit = 1.0
+    octaveAmpLimit = 1.5
     deleteList=[]
     for x in range (0, len(notes)):
         total = 0
@@ -74,14 +73,29 @@ def checkOctaves(notes,peakList):
     notes = np.delete(notes, indexes, 0)
     return notes             
 
-#returns a naive guess of the notes given.
-def makeGuess(peakList):
-    
+
+
+#implemented second hand check
+# lower notes heavily impact higher notes, way more false positives here.
+def checkSecondHand(peakList,fingerNumbers, fingerRange,takenNotes):
+    notes = np.array([["","","",""]]) 
+    for x in range(len(peakList)):
+        found = 0
+        for y in range(len(takenNotes)):
+            if((int(takenNotes[y][1]) == int(peakList[x][1]))):
+                found = 1
+                break
+        if(found==0):
+            notes = np.append(notes, np.array([peakList[x]]),axis=0)
+    notes = np.delete(notes,0,axis=0)
+    notes = checkHand(notes, fingerNumbers, fingerRange)
+    return notes
+
+def checkHand(peakList, fingerNumbers, fingerRange):
     peakList = sorted(peakList, key = lambda x: x[2], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
     #print(peakList)
     fingerNumbers = 5
     fingerRange = 13 # 13 = octave
-
     #add loudest note
     notes = np.array([peakList[0]]) 
     fingerNumbers -= 1
@@ -99,4 +113,15 @@ def makeGuess(peakList):
     #check to remove if an octave needs to be removed.
     newNotes = notes
     notes = checkOctaves(notes,peakList)
+
     return notes
+
+#returns a naive guess of the notes given.
+def makeGuess(peakList):
+    notesA = checkHand(peakList,5,13)
+    notesB = checkSecondHand(peakList,5,13,notesA)
+    #print("check")
+    #print(notesB)
+    #return notesA
+    return notesA, notesB
+   

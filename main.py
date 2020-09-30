@@ -15,7 +15,7 @@ frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8'
 
 
 
-testfile = "sounds/Fdim.wav"
+testfile = "sounds/snow.wav"
 
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -47,14 +47,24 @@ print(closestNoteList)
 
 print("")
 
-guess = naiveGuesser.makeGuess(closestNoteList)
+#guess = naiveGuesser.makeGuess(closestNoteList)
+guess,guessB = naiveGuesser.makeGuess(closestNoteList)
 print(" Note | NoteNum. | Amp | Freq")
+print("Hand 1:")
 print(guess)
+print("Hand 2:")
+print(guessB)
 print("Predicted Notes: ")
 stringGuess = ""
 for x in range(len(guess)):
     stringGuess += guess[x][0] + " "
-print(stringGuess)
+print("Hand 1: " + stringGuess)
+
+stringGuess = ""
+for x in range(len(guessB)):
+    stringGuess += guessB[x][0] + " "
+print("Hand 2: " + stringGuess)
+
 
 plt.plot(freqs[range(len(FFT)//2)], FFT[range(len(FFT)//2)])       #x = frequencies, y = FFT amplitude
 
