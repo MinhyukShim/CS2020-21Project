@@ -76,6 +76,7 @@ def removeHarmonics(closestNoteList,listFrequencies):
             closestNoteFrequency = min(listFrequencies, key=lambda z:abs(z-closestNoteList[int(y)][3])) #get closest frequency
             closestHarmonicFrequency = min(harmonicsList, key=lambda z:abs(z-closestNoteList[int(y)][3]))
             
+            #could use cent difference here instead.
             noteDiff = abs(closestNoteFrequency-closestNoteList[y][3])
             harmonicDiff = abs(closestHarmonicFrequency-closestNoteList[y][3])
             if(harmonicDiff<noteDiff):

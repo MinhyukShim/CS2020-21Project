@@ -88,6 +88,7 @@ def checkSecondHand(peakList,fingerNumbers, fingerRange,takenNotes):
         if(found==0):
             notes = np.append(notes, np.array([peakList[x]]),axis=0)
     notes = np.delete(notes,0,axis=0)
+    print(notes)
     notes = checkHand(notes, fingerNumbers, fingerRange)
     return notes
 
@@ -103,7 +104,7 @@ def checkHand(peakList, fingerNumbers, fingerRange):
     for x in range(1,len(peakList)):
         testNote = peakList[x]
         
-        if (float(testNote[2])>0.1): #if the amplitude is greater than 10% the max peak
+        if (float(testNote[2])>0.25): #if the amplitude is greater than 10% the max peak
             if (checkLargestDifference(testNote, notes, fingerRange)): #check finger range
                 if(fingerNumbers>0): #check if you have enough fingers to play
                     if(checkIfNoteExists(testNote,notes)==False):
