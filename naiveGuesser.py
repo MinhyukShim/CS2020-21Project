@@ -21,7 +21,7 @@
 
 import numpy as np
 
-amplitudeThreshold = 0.25
+amplitudeThreshold = 0.15
 
 #returns true if the tentative note given already exists in the guess notes list
 def checkIfNoteExists(note,noteList):

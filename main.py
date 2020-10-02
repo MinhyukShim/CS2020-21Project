@@ -74,7 +74,7 @@ frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8'
 #0 if need to do multi slice analysis. (long files)
 singleSlice = 0
 
-testfile = "notes/CmajScale.wav"
+testfile = "sounds/CmajScaleBoth.wav"
 bpm = 60
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -89,7 +89,7 @@ if(singleSlice):
     signalToNote(s_rate,signal,listFrequencies,frequencyNames)
 else:
     #used for long file to split individiual lines.
-    splitSignal = np.array_split(signal, int((seconds)*4))
+    splitSignal = np.array_split(signal, int((seconds)*8))
     #print(len(splitSignal))
     for x in range(len(splitSignal)):
         print("  ")
