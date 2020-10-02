@@ -21,6 +21,8 @@
 
 import numpy as np
 
+amplitudeThreshold = 0.25
+
 #returns true if the tentative note given already exists in the guess notes list
 def checkIfNoteExists(note,noteList):
     for x in range(0,len(noteList)):
@@ -47,7 +49,7 @@ def checkLargestDifference(note,noteList,fingerRange):
 def checkOctaves(notes,peakList):
 
     #the sum of amplitudes in the peaklist shouldnt exceed octaveAmpLimit, if it does then an octave most likely is played
-    octaveAmpLimit = 1.5
+    octaveAmpLimit = 1.25
     deleteList=[]
     for x in range (0, len(notes)):
         total = 0
@@ -57,8 +59,8 @@ def checkOctaves(notes,peakList):
             if( int(notes[x][1])+12 == int(peakList[y][1])):
                 total += float(peakList[y][2])
 
-        #if the sum of amplitudes is less tan 1.5 then add it to the delete list with the notenumber + octave to index the correct note to remove
-        if(total<1.5):
+        #if the sum of amplitudes is less than 1.5 then add it to the delete list with the notenumber + octave to index the correct note to remove
+        if(total<octaveAmpLimit):
             deleteList.append([int(notes[x][1])+12,total])
 
     # go through the delete lsit
@@ -88,7 +90,9 @@ def checkSecondHand(peakList,fingerNumbers, fingerRange,takenNotes):
         if(found==0):
             notes = np.append(notes, np.array([peakList[x]]),axis=0)
     notes = np.delete(notes,0,axis=0)
-    print(notes)
+    #print(notes)
+    if(len(notes)==0 or float(notes[0][2])<amplitudeThreshold):
+        return []
     notes = checkHand(notes, fingerNumbers, fingerRange)
     return notes
 
@@ -98,13 +102,14 @@ def checkHand(peakList, fingerNumbers, fingerRange):
     fingerNumbers = 5
     fingerRange = 13 # 13 = octave
     #add loudest note
+
     notes = np.array([peakList[0]]) 
     fingerNumbers -= 1
 
     for x in range(1,len(peakList)):
         testNote = peakList[x]
         
-        if (float(testNote[2])>0.25): #if the amplitude is greater than 10% the max peak
+        if (float(testNote[2])>amplitudeThreshold): #if the amplitude is greater than 15% the max peak
             if (checkLargestDifference(testNote, notes, fingerRange)): #check finger range
                 if(fingerNumbers>0): #check if you have enough fingers to play
                     if(checkIfNoteExists(testNote,notes)==False):
@@ -119,8 +124,12 @@ def checkHand(peakList, fingerNumbers, fingerRange):
 
 #returns a naive guess of the notes given.
 def makeGuess(peakList):
-    notesA = checkHand(peakList,5,13)
-    notesB = checkSecondHand(peakList,5,13,notesA)
+
+    notesA = []
+    notesB = []
+    if(len(peakList)>0):
+        notesA = checkHand(peakList,5,13)
+        notesB = checkSecondHand(peakList,5,13,notesA)
     #print("check")
     #print(notesB)
     #return notesA

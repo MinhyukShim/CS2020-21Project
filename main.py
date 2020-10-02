@@ -29,10 +29,9 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
     #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
-    #closestNoteList = utils.removeHarmonics(closestNoteList,listFrequencies)
-    #print(closestNoteList)
+    closestNoteList = utils.removeHarmonics(closestNoteList,listFrequencies)
+    print(closestNoteList)
 
-    print("")
 
     #guess = naiveGuesser.makeGuess(closestNoteList)
     guess,guessB = naiveGuesser.makeGuess(closestNoteList)
@@ -72,24 +71,30 @@ listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
 frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
 
 
+#0 if need to do multi slice analysis. (long files)
+singleSlice = 0
 
-testfile = "sounds/CmajScale.wav"
+testfile = "notes/CmajScale.wav"
 bpm = 60
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
 
+print(s_rate)
 seconds =len(signal)/s_rate
-print(16)
+print(seconds)
 if wave.open(testfile).getnchannels()==2:
     signal = signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
 
-signalToNote(s_rate,signal,listFrequencies,frequencyNames)
+if(singleSlice):
+    signalToNote(s_rate,signal,listFrequencies,frequencyNames)
+else:
+    #used for long file to split individiual lines.
+    splitSignal = np.array_split(signal, int((seconds)*4))
+    #print(len(splitSignal))
+    for x in range(len(splitSignal)):
+        print("  ")
+        print(" ")
+        print("Note: " + str(x))
+        signalToNote(s_rate,splitSignal[x],listFrequencies,frequencyNames)  
 
 
-#used for long file to split individiual lines.
-"""
-splitSignal = np.array_split(signal, int(16))
-#print(len(splitSignal))
-for x in range(len(splitSignal)):
-    signalToNote(s_rate,splitSignal[x],listFrequencies,frequencyNames)
-"""
