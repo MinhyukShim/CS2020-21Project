@@ -92,8 +92,11 @@ else:
     #print(len(splitSignal))
     for x in range(len(splitSignals)):
         print("  ")
-        print(" ")
-        print("Note: " + str(x))
+        if(x==0):
+            print("sample: 0  time: 0")
+        else:
+            print("sample: " + str(splits[x-1]) + "  time: " + str(float(splits[x-1]/s_rate)))
+            print("Note: " + str(x))
         signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
 
 
