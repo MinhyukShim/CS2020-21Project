@@ -6,6 +6,7 @@ import numpy as np
 import wave
 import naiveGuesser
 import utils
+import librosa
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
 
@@ -61,7 +62,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (Relative)')
-    #plt.show()
+    plt.show()
 
 
 
@@ -74,14 +75,11 @@ frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8'
 #0 if need to do multi slice analysis. (long files)
 singleSlice = 0
 
-testfile = "sounds/CmajScaleBoth.wav"
-bpm = 60
+testfile = "sounds/CmajScale.wav"
+bpm = 60    
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
 
-print(s_rate)
-seconds =len(signal)/s_rate
-print(seconds)
 if wave.open(testfile).getnchannels()==2:
     signal = signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
 
@@ -89,12 +87,13 @@ if(singleSlice):
     signalToNote(s_rate,signal,listFrequencies,frequencyNames)
 else:
     #used for long file to split individiual lines.
-    splitSignal = np.array_split(signal, int((seconds)*8))
+    splits = librosa.onset.onset_detect(y=signal, units='samples') #uses onset detection
+    splitSignals= np.array_split(signal, splits)
     #print(len(splitSignal))
-    for x in range(len(splitSignal)):
+    for x in range(len(splitSignals)):
         print("  ")
         print(" ")
         print("Note: " + str(x))
-        signalToNote(s_rate,splitSignal[x],listFrequencies,frequencyNames)  
+        signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
 
 
