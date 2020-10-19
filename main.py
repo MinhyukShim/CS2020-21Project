@@ -22,7 +22,7 @@ def plotFFT(freqs,FFT,peaks):
     axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (Relative)')
-    plt.show()
+    #plt.show()
 
 
 def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
@@ -45,9 +45,10 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
     #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
-    print(closestNoteList)
 
-    converter.makeGuess(closestNoteList)
+    closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
+    converter.makeGuess(closestNoteListSorted)
+
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
     #print(" Note | NoteNum. | Amp | Freq")
     #print("Hand 1:")
@@ -70,36 +71,38 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
 
 
 
-#dir_path = os.path.dirname(os.path.realpath(__file__))
-listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
-frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
+def main():
+    #dir_path = os.path.dirname(os.path.realpath(__file__))
+    listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
+    frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
 
 
-#0 if need to do multi slice analysis. (long files)
-singleSlice = 1
+    #0 if need to do multi slice analysis. (long files)
+    singleSlice = 0
 
-testfile = "sounds/CG.wav"
-bpm = 60    
+    testfile = "sounds/CmajScaleBoth.wav"
+    bpm = 60    
 
-s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
+    s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
 
-if wave.open(testfile).getnchannels()==2:
-    signal = signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
+    if wave.open(testfile).getnchannels()==2:
+        signal = signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
 
-if(singleSlice):
-    signalToNote(s_rate,signal,listFrequencies,frequencyNames)
-else:
-    #used for long file to split individiual lines.
-    splits = librosa.onset.onset_detect(y=signal, units='samples') #uses onset detection
-    splitSignals= np.array_split(signal, splits)
-    #print(len(splitSignal))
-    for x in range(len(splitSignals)):
-        print("  ")
-        if(x==0):
-            print("sample: 0  time: 0")
-        else:
-            print("sample: " + str(splits[x-1]) + "  time: " + str(float(splits[x-1]/s_rate)))
-            print("Note: " + str(x))
-        signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
+    if(singleSlice):
+        signalToNote(s_rate,signal,listFrequencies,frequencyNames)
+    else:
+        #used for long file to split individiual lines.
+        splits = librosa.onset.onset_detect(y=signal, units='samples') #uses onset detection
+        splitSignals= np.array_split(signal, splits)
+        #print(len(splitSignal))
+        for x in range(len(splitSignals)):
+            print("  ")
+            if(x==0):
+                print("sample: 0  time: 0")
+            else:
+                print("sample: " + str(splits[x-1]) + "  time: " + str(float(splits[x-1]/s_rate)))
+                print("Note: " + str(x))
+                signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
 
 
+main()
