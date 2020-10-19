@@ -13,7 +13,7 @@ def generateFrequencies():
 
 #list of notenames ['A-0' ... 'C-8']
 def generateFrequencyNames(listFrequencies):
-    noteNames = ["A","A#/Bb","B","C", "C#/Db", "D", "D#/Eb", "E", "F","F#/Gb", "G", "G#/Ab"]
+    noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
     frequencyNames = []
 
 

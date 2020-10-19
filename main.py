@@ -7,8 +7,22 @@ import wave
 import naiveGuesser
 import utils
 import librosa
+import converter
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
+
+
+def plotFFT(freqs,FFT,peaks):
+    plt.plot(freqs[range(len(FFT)//2)], FFT[range(len(FFT)//2)])       #x = frequencies, y = FFT amplitude
+
+
+    plt.plot(freqs[peaks],FFT[peaks], "x")  #mark peaks with x
+
+    axes = plt.gca()
+    axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Amplitude (Relative)')
+    plt.show()
 
 
 def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
@@ -30,12 +44,11 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
     #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
-    closestNoteList = utils.removeHarmonics(closestNoteList,listFrequencies)
+    closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
     print(closestNoteList)
 
-
-    #guess = naiveGuesser.makeGuess(closestNoteList)
-    guess,guessB = naiveGuesser.makeGuess(closestNoteList)
+    converter.makeGuess(closestNoteList)
+    guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
     #print(" Note | NoteNum. | Amp | Freq")
     #print("Hand 1:")
     #print(guess)
@@ -52,17 +65,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
         stringGuess += guessB[x][0] + " "
     print("Hand 2: " + stringGuess)
 
-
-    plt.plot(freqs[range(len(FFT)//2)], FFT[range(len(FFT)//2)])       #x = frequencies, y = FFT amplitude
-
-
-    plt.plot(freqs[peaks],FFT[peaks], "x")  #mark peaks with x
-
-    axes = plt.gca()
-    axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Amplitude (Relative)')
-    plt.show()
+    plotFFT(freqs,FFT,peaks)
 
 
 
@@ -73,9 +76,9 @@ frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8'
 
 
 #0 if need to do multi slice analysis. (long files)
-singleSlice = 0
+singleSlice = 1
 
-testfile = "sounds/CmajScale.wav"
+testfile = "sounds/CG.wav"
 bpm = 60    
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.

@@ -6,10 +6,13 @@ import scipy
 import scipy.fftpack as fftpk
 import wave
 import utils
+import random
 from scipy.signal import find_peaks
 
 def combineSignals(original,newSignal):
 
+    if (original == []):
+        return newSignal
     if(len(original)>len(newSignal)):
         newSignal =np.concatenate([newSignal, np.zeros(len(original)-len(newSignal))])
     elif(len(newSignal)>len(original)):
@@ -18,65 +21,97 @@ def combineSignals(original,newSignal):
     original = original + newSignal
     return original
 
+def makeSignal(noteList):
+    directory = "notes/"
+    finalSignal = []
+    for x in range(len(noteList)):
+        directoryNote = noteList[x]
 
-def makeMono(signal):
-    if(signal.ndim==2):
-        return signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
-    return signal
+        sound = directory + directoryNote + ".wav"
+        s_rate, signal = wavfile.read(sound) #read the file and extract the sample rate and signal.
 
-
-listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
-frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
-
-#needs fixing: make code more general to support different amount of sounds to combine.
-testfile = "notes/archive/C-2.wav"
-testfileB = "notes/archive/E-2.wav"
-testfileC = "notes/archive/G-2.wav"
-testfileD = "notes/C-5.wav"
-
-s_rate, signal = wavfile.read(testfile) #file to FFT
-signal = makeMono(signal)
-
-s_rateB, signalB = wavfile.read(testfileB) #file to FFT
-signalB = makeMono(signalB)
-
-s_rateC, signalC = wavfile.read(testfileC) #file to FFT
-signalC = makeMono(signalC)
-
-s_rateD, signalD = wavfile.read(testfileD) #file to FFT
-signalD = makeMono(signalD)
-
-newSignal = combineSignals(signal,signalB)
-newSignal = combineSignals(newSignal,signalC)
-newSignal = combineSignals(newSignal,signalD)
-signal = newSignal
+        if wave.open(sound).getnchannels()==2:
+            signal = signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
+        finalSignal = combineSignals(finalSignal, signal)
+    
+    return finalSignal, s_rate
 
 
 
-FFT = abs(scipy.fft.fft(signal)) 
-freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) 
 
 
-#normalize FFT where biggest peak's amplitude is 1.0
-FFT = utils.normalizeFFT(FFT,freqs)
+def calculateAccuracy(originalPeaks, generatedPeaks):
+    noMatchPeaks = 0
+    frequencyDifference = 0
+    amplitudeDifference = 0
+    for x in range(len(generatedPeaks)):
+        currentPeak = generatedPeaks[x]
+        peakExists = False
+        for y in range(len(originalPeaks)):
+            if (currentPeak[1] == originalPeaks[y][1]):
+                peakExists = True
+                frequencyDifference += abs(currentPeak[3] - originalPeaks[y][3])
+                amplitudeDifference += abs(currentPeak[2] - originalPeaks[y][2])
+            
+        if(peakExists==False):
+            noMatchPeaks += 1
+    return noMatchPeaks, frequencyDifference, amplitudeDifference
+
+def generateClosestNoteList(signal,s_rate,listFrequencies,frequencyNames):
+
+    FFT = abs(scipy.fft.fft(signal)) #FFT the signal
+    freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
 
 
-peaks, _ = find_peaks(FFT,prominence=0.1, height=0.05) #find the peaks of audio
-peaks = [x for x in peaks if freqs[x]>=0] #get rid of negative peaks.
-freqAmp = utils.createListOfPeaks(peaks,freqs,FFT)
+    FFT = utils.normalizeFFT(FFT,freqs) #scale the FFT so that the largest peak has an amplitude of 1.0
 
-#use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp]]
 
-closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
+    #find the peaks of the normalized graph
+    peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
+    peaks = [x for x in peaks if freqs[x]>=0] 
 
-print(closestNoteList)
+    freqAmp = utils.createListOfPeaks(peaks,freqs,FFT) # [[Freq,Amplitude]] #sorted by ascending frequency like peaks
 
-plt.plot(freqs[range(len(FFT)//2)], FFT[range(len(FFT)//2)]) 
-plt.plot(freqs[peaks],FFT[peaks], "x")  #mark peaks with x
 
-axes = plt.gca()
-axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis     
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Amplitude (Relative)')
+    #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
+    closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
+    return closestNoteList
 
-plt.show()
+def generateRandomNotes(originalPeaks):
+
+    numberOfNotes = random.randint(1,10)
+    notes = []
+    print(numberOfNotes)
+    x = 0
+    while x < numberOfNotes:
+        x += 1
+        noteIndex = random.randint(0,len(originalPeaks)-1)
+        noteName = originalPeaks[noteIndex][0]
+        print(noteName)
+        if (noteName in notes):
+            x -= 1
+            if(len(notes) >= len(originalPeaks)):
+                x += 10000
+        else:
+
+            notes.append(noteName)
+    print(notes)
+    return notes
+
+def crossBreed(notesA,notesB):
+    length = int((len(notesA) + len(notesB) )/2)
+    x=0
+    while x < length:
+        x += 1
+        
+
+def makeGuess(originalPeaks):
+    listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
+    frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
+    generations = 100
+    population = 100
+
+    notes = generateRandomNotes(originalPeaks)
+    signal, s_rate = makeSignal(notes)
+    closestNoteList = generateClosestNoteList(signal,s_rate,listFrequencies,frequencyNames)
+    print(calculateAccuracy(originalPeaks,closestNoteList))
