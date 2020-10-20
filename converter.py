@@ -107,7 +107,8 @@ def generateRandomNotes(originalPeaks):
     x = 0
     while x < numberOfNotes:
         x += 1
-        noteIndex = int(random.triangular(0,len(originalPeaks)-1,0))
+        #noteIndex = int(random.triangular(0,len(originalPeaks)-1,0))
+        noteIndex = int(random.randint(0,len(originalPeaks)-1))
         noteName = originalPeaks[noteIndex][0]
         if (noteName in notes):
             x -= 1
@@ -121,7 +122,7 @@ def generateRandomNotes(originalPeaks):
 
 def mutate(notes):
     randomMutate = random.randint(0,len(notes)-1)
-    if(len(notes)>1):
+    if(len(notes)>2):
         notes.remove(notes[randomMutate])
     return notes
 
@@ -165,25 +166,39 @@ def makeOne(originalPeaks,notes):
 
 
 def testNotes(originalPeaks):
-    signal = makeSignal(["C-4", "G-4","C-5"])
+    signal = makeSignal(["F#Gb-3", "A-3","C#Db-4", "E-4"])
     closestNoteList = generateClosestNoteList(signal,s_rate)
     accuracy = calculateAccuracy(originalPeaks,closestNoteList)
     print("acrcriacy::")
     print(accuracy)
     input("")
 
+
+
+def sortPopulation(populationList):
+    #return sorted(populationList,key=lambda x: (x[1][0],x[1][1]*x[1][2])) #good
+    return sorted(populationList,key=lambda x: ((x[1][0]**2) * 20 + x[1][1]+x[1][2]*25 ))
+
+
+
+
 def makeGuess(originalPeaks):
+
+    #Load the files of sounds into a data structure.
     loadNoteSounds()
-    print(originalPeaks)
+    print(testNotes(originalPeaks))
+    #GA numbers
     generations = 10
     population = 150
     crossBreedAmount = 40
     numberToKeep = 1
     mutationNumber = 40
+
+
     populationList = []
     for x in range(0,generations):
 
-        #make new ones
+        #make new group of notes for the population
         while len(populationList) <population:
             notes = generateRandomNotes(originalPeaks)
             newNotes = makeOne(originalPeaks,notes)
@@ -191,7 +206,7 @@ def makeGuess(originalPeaks):
 
 
         #sort by accuracy
-        populationList = sorted(populationList,key=lambda x: (x[1][0],x[1][1]*x[1][2]))
+        populationList = sortPopulation(populationList)
         newPopulation = []
         print("-----------------")
         print(populationList[0])

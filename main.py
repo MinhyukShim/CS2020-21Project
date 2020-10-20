@@ -47,14 +47,12 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    #converter.makeGuess(closestNoteListSorted)
+    #print(closestNoteListSorted)
+    converter.makeGuess(closestNoteList)
+
 
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
     #print(" Note | NoteNum. | Amp | Freq")
-    #print("Hand 1:")
-    #print(guess)
-    #print("Hand 2:")
-    #print(guessB)
     print("Predicted Notes: ")
     stringGuess = ""
     for x in range(len(guess)):
@@ -72,21 +70,22 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
 
 
 def main():
-    #dir_path = os.path.dirname(os.path.realpath(__file__))
+
     listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
     frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
 
 
     #0 if need to do multi slice analysis. (long files)
-    singleSlice = 0
+    singleSlice = 1
 
-    testfile = "sounds/CmajScale.wav"
+    testfile = "sounds/F#m7.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
 
+    #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
     if wave.open(testfile).getnchannels()==2:
-        signal = signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
+        signal = signal.sum(axis=1)/2 
 
     if(singleSlice):
         signalToNote(s_rate,signal,listFrequencies,frequencyNames)
@@ -99,7 +98,6 @@ def main():
             print("  ")
             if(x==0):
                 print("Sample: 0  Time: 0  Note: 0")
-                #signalToNote(s_rate,splitSignals[0],listFrequencies,frequencyNames)  
             else:
                 print("Sample: " + str(splits[x-1]) + "  Time: " + str(float(splits[x-1]/s_rate)) + "  Note: " + str(x))
             signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
