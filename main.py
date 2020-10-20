@@ -47,7 +47,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    converter.makeGuess(closestNoteListSorted)
+    #converter.makeGuess(closestNoteListSorted)
 
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
     #print(" Note | NoteNum. | Amp | Freq")
@@ -64,7 +64,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     stringGuess = ""
     for x in range(len(guessB)):
         stringGuess += guessB[x][0] + " "
-    print("Hand 2: " + stringGuess)
+    #print("Hand 2: " + stringGuess)
 
     plotFFT(freqs,FFT,peaks)
 
@@ -78,10 +78,10 @@ def main():
 
 
     #0 if need to do multi slice analysis. (long files)
-    singleSlice = 1
+    singleSlice = 0
 
-    testfile = "sounds/d#m7b5.wav"
-    bpm = 60    
+    testfile = "sounds/CmajScale.wav"
+    #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
 
@@ -91,18 +91,18 @@ def main():
     if(singleSlice):
         signalToNote(s_rate,signal,listFrequencies,frequencyNames)
     else:
-        #used for long file to split individiual lines.
-        splits = librosa.onset.onset_detect(y=signal, units='samples') #uses onset detection
+
+        #used to analyse pieces rather than a single slice
+        splits = librosa.onset.onset_detect(y=signal, units='samples') #uses onset detection to find where to split
         splitSignals= np.array_split(signal, splits)
-        #print(len(splitSignal))
         for x in range(len(splitSignals)):
             print("  ")
             if(x==0):
-                print("sample: 0  time: 0")
+                print("Sample: 0  Time: 0  Note: 0")
+                #signalToNote(s_rate,splitSignals[0],listFrequencies,frequencyNames)  
             else:
-                print("sample: " + str(splits[x-1]) + "  time: " + str(float(splits[x-1]/s_rate)))
-                print("Note: " + str(x))
-                signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
+                print("Sample: " + str(splits[x-1]) + "  Time: " + str(float(splits[x-1]/s_rate)) + "  Note: " + str(x))
+            signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
 
 
 main()
