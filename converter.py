@@ -107,7 +107,7 @@ def generateRandomNotes(originalPeaks):
     x = 0
     while x < numberOfNotes:
         x += 1
-        noteIndex = int(random.triangular(0,len(originalPeaks)-1,len(originalPeaks)/10))
+        noteIndex = int(random.triangular(0,len(originalPeaks)-1,0))
         noteName = originalPeaks[noteIndex][0]
         if (noteName in notes):
             x -= 1
@@ -128,12 +128,14 @@ def mutate(notes):
 
 def crossBreed(notesA,notesB):
 
-    length = int((len(notesA) + len(notesB) )/2)
-
+    #length = int((len(notesA) + len(notesB) )/2)
+    length = random.randint(min(len(notesA),len(notesB))-1, max(len(notesA),len(notesB)))
+    if(length<2):
+        length =2
     x=0
     tooManyAttempts  =0
     newNotes = []
-    while x < length and tooManyAttempts<100:
+    while x < length and tooManyAttempts<50:
         x += 1
         chooseList = random.randint(0,1)
         if(chooseList==0):
@@ -174,42 +176,56 @@ def makeGuess(originalPeaks):
     loadNoteSounds()
     print(originalPeaks)
     generations = 10
-    population = 250
-    crossBreedAmount = 50
+    population = 150
+    crossBreedAmount = 40
     numberToKeep = 1
-    mutationNumber = 50
+    mutationNumber = 40
     populationList = []
     for x in range(0,generations):
+
+        #make new ones
         while len(populationList) <population:
             notes = generateRandomNotes(originalPeaks)
             newNotes = makeOne(originalPeaks,notes)
             populationList.append(newNotes)
-        #print(populationList)
+
+
+        #sort by accuracy
         populationList = sorted(populationList,key=lambda x: (x[1][0],x[1][1]*x[1][2]))
         newPopulation = []
+        print("-----------------")
+        print(populationList[0])
+
+        #cross breed for next generation
         for a in range(0,crossBreedAmount):
-            randomNumber = int(random.triangular(0,population-1,population/4))
+            randomNumber = int(random.triangular(0,population-1,0))
             notesA = populationList[randomNumber][0]
 
-            randomNumber = int(random.triangular(0,population-1,population/4))
+            randomNumber = int(random.triangular(0,population-1,0))
             notesB = populationList[randomNumber][0]
             newNotes = crossBreed(notesA,notesB)
             newNotes = makeOne(originalPeaks, newNotes)
             newPopulation.append(newNotes)
 
+        #keep best ones
         for a in range (0,numberToKeep):
             newPopulation.append(populationList[a])
         
+
+        #mutate some
         for a in range(0,mutationNumber):
-            randomNumber = int(random.triangular(0,population-1,population/4))
-            notes = populationList[randomNumber][0]
+            randomNumber = int(random.triangular(0,population-1,0))
+            notes = populationList[randomNumber][0].copy()
             newNotes = mutate(notes)
             newNotes = makeOne(originalPeaks, newNotes)
             newPopulation.append(newNotes)
 
-        print("-----------------")
-        print("best one:")
-        print(populationList[0])
-        #print(populationList)
 
-        populationList = newPopulation
+        #print(populationList)
+        #print(populationList)
+        print(makeOne(originalPeaks, populationList[0][0]))
+        print(populationList[:20])
+        print("  ")
+
+        populationList = []
+        populationList = newPopulation.copy()
