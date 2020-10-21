@@ -47,8 +47,8 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    #print(closestNoteListSorted)
-    converter.makeGuess(closestNoteList)
+    print(closestNoteListSorted)
+    converter.makeGuess(closestNoteListSorted)
 
 
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
@@ -62,7 +62,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     stringGuess = ""
     for x in range(len(guessB)):
         stringGuess += guessB[x][0] + " "
-    #print("Hand 2: " + stringGuess)
+    print("Hand 2: " + stringGuess)
 
     plotFFT(freqs,FFT,peaks)
 
@@ -73,12 +73,12 @@ def main():
 
     listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
     frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
-
+    converter.loadNoteSounds()
 
     #0 if need to do multi slice analysis. (long files)
-    singleSlice = 1
+    singleSlice = 0
 
-    testfile = "sounds/F#m7.wav"
+    testfile = "sounds/MaryPoly.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -92,7 +92,7 @@ def main():
     else:
 
         #used to analyse pieces rather than a single slice
-        splits = librosa.onset.onset_detect(y=signal, units='samples') #uses onset detection to find where to split
+        splits = librosa.onset.onset_detect(y=signal,sr=44100, units='samples',backtrack=True) #uses onset detection to find where to split
         splitSignals= np.array_split(signal, splits)
         for x in range(len(splitSignals)):
             print("  ")

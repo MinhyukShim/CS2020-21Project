@@ -7,12 +7,17 @@ import scipy.fftpack as fftpk
 import wave
 import utils
 import random
+import math
 from scipy.signal import find_peaks
 
 listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
 frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
 noteSounds = {}
 s_rate = 44100
+#Load the files of sounds into a data structure.
+
+
+
 
 def loadNoteSounds():
     directory = "notes/"
@@ -65,20 +70,30 @@ def differenceInNotes(originalPeaks,generatedPeaks):
 
 def calculateAccuracy(originalPeaks, generatedPeaks):
     noMatchPeaks = 0
-    frequencyDifference = 0
+    centDifference = 0
     amplitudeDifference = 0
     for x in range(len(generatedPeaks)):
         currentPeak = generatedPeaks[x]
         peakExists = False
+
+
+        #find smallest difference. better than difference of all matching, cent difference better than frequency difference to avoid skew
+        tempCent = 10000
+        tempAmplitude = 10000
         for y in range(len(originalPeaks)):
+
             if (currentPeak[1] == originalPeaks[y][1]):
                 peakExists = True
-                frequencyDifference += abs(currentPeak[3] - originalPeaks[y][3])
-                amplitudeDifference += abs(currentPeak[2] - originalPeaks[y][2])
+                tempCent = min( tempCent,abs(1200* math.log((currentPeak[3] /originalPeaks[y][3]), 2)) )
+                tempAmplitude = min( tempAmplitude,abs(currentPeak[2] - originalPeaks[y][2]))
+        
         if(peakExists==False):
-            noMatchPeaks +=1    
+            noMatchPeaks +=1
+        else:
+            centDifference +=tempCent
+            amplitudeDifference += tempAmplitude
     noMatchPeaks += differenceInNotes(originalPeaks,generatedPeaks)
-    return [noMatchPeaks, frequencyDifference, amplitudeDifference]
+    return [noMatchPeaks, centDifference, amplitudeDifference]
 
 def generateClosestNoteList(signal,s_rate):
 
@@ -105,6 +120,8 @@ def generateRandomNotes(originalPeaks):
     numberOfNotes = int(random.triangular(2,8,4))
     notes = []
     x = 0
+
+
     while x < numberOfNotes:
         x += 1
         #noteIndex = int(random.triangular(0,len(originalPeaks)-1,0))
@@ -113,6 +130,7 @@ def generateRandomNotes(originalPeaks):
         if (noteName in notes):
             x -= 1
             if(len(notes) >= len(originalPeaks)):
+                print("Test")
                 x += 10000
         else:
 
@@ -139,22 +157,19 @@ def crossBreed(notesA,notesB):
     while x < length and tooManyAttempts<50:
         x += 1
         chooseList = random.randint(0,1)
+        chosenList = []
         if(chooseList==0):
-            chooseNote = random.randint(0, len(notesA)-1)
-            newNote =notesA[chooseNote]
-            if(newNote in newNotes):
-               x -= 1
-               tooManyAttempts +=1
-            else:
-                newNotes.append(newNote)
+            chosenList = notesA.copy()
         else:
-            chooseNote = random.randint(0, len(notesB)-1)
-            newNote =notesB[chooseNote]
-            if(newNote in newNotes):
-               x -= 1
-               tooManyAttempts +=1
-            else:
-                newNotes.append(newNote)
+            chosenList = notesB.copy()
+        
+        chooseNote = random.randint(0, len(chosenList)-1)
+        newNote = chosenList[chooseNote]
+        if(newNote in newNotes):
+            x -= 1
+            tooManyAttempts +=1
+        else:
+            newNotes.append(newNote)
     return newNotes
 
 def makeOne(originalPeaks,notes):            
@@ -166,7 +181,7 @@ def makeOne(originalPeaks,notes):
 
 
 def testNotes(originalPeaks):
-    signal = makeSignal(["F#Gb-3", "A-3","C#Db-4", "E-4"])
+    signal = makeSignal(["C-4","E-4","G-4","C-5"])
     closestNoteList = generateClosestNoteList(signal,s_rate)
     accuracy = calculateAccuracy(originalPeaks,closestNoteList)
     print("acrcriacy::")
@@ -177,20 +192,20 @@ def testNotes(originalPeaks):
 
 def sortPopulation(populationList):
     #return sorted(populationList,key=lambda x: (x[1][0],x[1][1]*x[1][2])) #good
-    return sorted(populationList,key=lambda x: ((x[1][0]**2) * 20 + x[1][1]+x[1][2]*25 ))
+    return sorted(populationList,key=lambda x: ((x[1][0]**2) * 20 + x[1][1]**2 +x[1][2]*25 ))
 
 
 
 
 def makeGuess(originalPeaks):
 
-    #Load the files of sounds into a data structure.
-    loadNoteSounds()
-    print(testNotes(originalPeaks))
+    #print(testNotes(originalPeaks))
+
+
     #GA numbers
     generations = 10
-    population = 150
-    crossBreedAmount = 40
+    population = 200
+    crossBreedAmount = 50
     numberToKeep = 1
     mutationNumber = 40
 
@@ -205,7 +220,7 @@ def makeGuess(originalPeaks):
             populationList.append(newNotes)
 
 
-        #sort by accuracy
+        #sort by accuracy compared to the Target signal.
         populationList = sortPopulation(populationList)
         newPopulation = []
         print("-----------------")
@@ -236,10 +251,8 @@ def makeGuess(originalPeaks):
             newPopulation.append(newNotes)
 
 
-        #print(populationList)
-        #print(populationList)
         print(makeOne(originalPeaks, populationList[0][0]))
-        print(populationList[:20])
+        #print(populationList[:20])
         print("  ")
 
         populationList = []
