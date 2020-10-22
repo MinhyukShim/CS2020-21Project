@@ -9,6 +9,7 @@ import utils
 import random
 import math
 from scipy.signal import find_peaks
+from collections import OrderedDict
 
 listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
 frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
@@ -67,6 +68,10 @@ def differenceInNotes(originalPeaks,generatedPeaks):
                 del copyOriginalPeaks[y]
                 break
     return len(copyOriginalPeaks)
+
+
+def calculateScore(givenList):
+    return (((givenList[0]+1)**3) + givenList[1]**2 +(givenList[2]*10)**2)
 
 def calculateAccuracy(originalPeaks, generatedPeaks):
     noMatchPeaks = 0
@@ -138,10 +143,19 @@ def generateRandomNotes(originalPeaks):
     return notes
 
 
-def mutate(notes):
-    randomMutate = random.randint(0,len(notes)-1)
-    if(len(notes)>2):
-        notes.remove(notes[randomMutate])
+def mutate(originalPeaks,notes):
+    chooseMutate  = random.randint(1,100)
+    if(chooseMutate <= 75):
+        randomMutate = random.randint(0,len(notes)-1)
+        if(len(notes)>2):
+            notes.remove(notes[randomMutate])
+    else:
+        shuffledPeaks = originalPeaks.copy()
+        #random.shuffle(shuffledPeaks)
+        for y in range(len(shuffledPeaks)):
+            if(not (shuffledPeaks[y][0] in notes)):
+                notes.append(shuffledPeaks[y][0])
+                break
     return notes
 
 
@@ -181,18 +195,20 @@ def makeOne(originalPeaks,notes):
 
 
 def testNotes(originalPeaks):
-    signal = makeSignal(["C-4","E-4","G-4","C-5"])
+    signal = makeSignal(["F#Gb-3","A-3","C#Db-4"])
     closestNoteList = generateClosestNoteList(signal,s_rate)
     accuracy = calculateAccuracy(originalPeaks,closestNoteList)
     print("acrcriacy::")
     print(accuracy)
+    print(calculateScore(accuracy))
     input("")
 
 
 
 def sortPopulation(populationList):
     #return sorted(populationList,key=lambda x: (x[1][0],x[1][1]*x[1][2])) #good
-    return sorted(populationList,key=lambda x: ((x[1][0]**2) * 20 + x[1][1]**2 +x[1][2]*25 ))
+    return sorted(populationList,key=lambda x: (calculateScore(x[1])))
+
 
 
 
@@ -205,12 +221,13 @@ def makeGuess(originalPeaks):
     #GA numbers
     generations = 10
     population = 200
-    crossBreedAmount = 50
+    crossBreedAmount = 75
     numberToKeep = 1
-    mutationNumber = 40
+    mutationNumber = 75
 
 
     populationList = []
+    bestCandidates = []
     for x in range(0,generations):
 
         #make new group of notes for the population
@@ -246,14 +263,28 @@ def makeGuess(originalPeaks):
         for a in range(0,mutationNumber):
             randomNumber = int(random.triangular(0,population-1,0))
             notes = populationList[randomNumber][0].copy()
-            newNotes = mutate(notes)
+            
+            newNotes = mutate(originalPeaks,notes)
             newNotes = makeOne(originalPeaks, newNotes)
             newPopulation.append(newNotes)
 
 
         print(makeOne(originalPeaks, populationList[0][0]))
-        #print(populationList[:20])
+        print(calculateScore(populationList[0][1]))
+        bestCandidates = [row[0] for row in populationList[:20]].copy()
         print("  ")
 
         populationList = []
         populationList = newPopulation.copy()
+    
+    #print(bestCandidates)
+    print("")
+    #print(calculateScore(bestCandidates[0][1]))
+    for y in range(len((bestCandidates))):
+        bestCandidates[y] = tuple(sorted(bestCandidates[y]))
+    bestCandidates = list(OrderedDict.fromkeys(bestCandidates))
+
+    for y in range(len((bestCandidates))):
+        bestCandidates[y] = list(bestCandidates[y])
+    print(bestCandidates)
+    print(bestCandidates[0])

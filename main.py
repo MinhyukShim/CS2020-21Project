@@ -76,9 +76,9 @@ def main():
     converter.loadNoteSounds()
 
     #0 if need to do multi slice analysis. (long files)
-    singleSlice = 0
+    singleSlice = 1
 
-    testfile = "sounds/MaryPoly.wav"
+    testfile = "sounds/d#m7b5octave.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
