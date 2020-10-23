@@ -20,18 +20,22 @@ s_rate = 44100
 
 
 
+#Go through all the notes and add the corresponding note file. These nmote files are used to combine signals together to produce sounds.
 def loadNoteSounds():
     directory = "notes/"
     for x in range(len(frequencyNames)):        
         sound = directory + frequencyNames[x] + ".wav"
         try:
             _, signal = wavfile.read(sound)
+            #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
             if wave.open(sound).getnchannels()==2:
-                signal = signal.sum(axis=1)/2 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
+                signal = signal.sum(axis=1)/2 
             noteSounds[frequencyNames[x]] = signal
         except:
             noteSounds[frequencyNames[x]] = []
 
+
+#Gets two signals and returns one signal as the combination of the two.
 def combineSignals(original,newSignal):
 
     if (original == []):
@@ -44,14 +48,14 @@ def combineSignals(original,newSignal):
     original = original + newSignal
     return original
 
+
+#Gets list of note list and then returns the combined signal
 def makeSignal(noteList):
     finalSignal = []
     for x in range(len(noteList)):
         currentNote = noteList[x]
 
         signal = noteSounds[currentNote]
-
-
         finalSignal = combineSignals(finalSignal, signal)
     
     return finalSignal

@@ -7,7 +7,7 @@ import wave
 import naiveGuesser
 import utils
 import librosa
-import converter
+import geneticGuesser
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
 
@@ -48,7 +48,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
     print(closestNoteListSorted)
-    converter.makeGuess(closestNoteListSorted)
+    geneticGuesser.makeGuess(closestNoteListSorted)
 
 
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
@@ -73,7 +73,7 @@ def main():
 
     listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
     frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
-    converter.loadNoteSounds()
+    geneticGuesser.loadNoteSounds()
 
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 1
