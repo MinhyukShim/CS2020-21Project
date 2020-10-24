@@ -22,6 +22,8 @@
 import numpy as np
 
 amplitudeThreshold = 0.15
+fingerNumbers = 5
+fingerRange = 13 # 13 = octave
 
 #returns true if the tentative note given already exists in the guess notes list
 def checkIfNoteExists(note,noteList):
@@ -99,8 +101,7 @@ def checkSecondHand(peakList,fingerNumbers, fingerRange,takenNotes):
 def checkHand(peakList, fingerNumbers, fingerRange):
     peakList = sorted(peakList, key = lambda x: x[2], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
     #print(peakList)
-    fingerNumbers = 5
-    fingerRange = 13 # 13 = octave
+
     #add loudest note
 
     notes = np.array([peakList[0]]) 
@@ -128,8 +129,8 @@ def makeGuess(peakList):
     notesA = []
     notesB = []
     if(len(peakList)>0):
-        notesA = checkHand(peakList,5,13)
-        notesB = checkSecondHand(peakList,5,13,notesA)
+        notesA = checkHand(peakList,fingerNumbers,fingerRange)
+        notesB = checkSecondHand(peakList,fingerNumbers,fingerRange,notesA)
     #print("check")
     #print(notesB)
     #return notesA

@@ -26,33 +26,35 @@ def plotFFT(freqs,FFT,peaks):
 
 
 def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
+
     FFT = abs(scipy.fft.fft(signal)) #FFT the signal
     freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
 
+    FFT = utils.normalizeFFT(FFT,freqs) #normalize the FFT graph so that the largest peak has an amplitude of 1.0
 
-    FFT = utils.normalizeFFT(FFT,freqs) #scale the FFT so that the largest peak has an amplitude of 1.0
 
-
-    #find the peaks of the normalized graph
+    #find the peaks of the normalized graph and get rid of negative peaks.
     peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
     peaks = [x for x in peaks if freqs[x]>=0] 
 
-    freqAmp = utils.createListOfPeaks(peaks,freqs,FFT) # [[Freq,Amplitude]] #sorted by ascending frequency like peaks
 
-    #print(freqAmp)
+    #[[Freq,Amplitude]] get the frequency of the peaks and the amplitutde. Ascending frequency.
+    freqAmp = utils.createListOfPeaks(peaks,freqs,FFT) 
+
 
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
+
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
+    print(closestNoteList)
     #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    print(closestNoteListSorted)
-    geneticGuesser.makeGuess(closestNoteListSorted)
+    #geneticGuesser.makeGuess(closestNoteListSorted)
 
 
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
-    #print(" Note | NoteNum. | Amp | Freq")
+
     print("Predicted Notes: ")
     stringGuess = ""
     for x in range(len(guess)):
@@ -62,7 +64,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     stringGuess = ""
     for x in range(len(guessB)):
         stringGuess += guessB[x][0] + " "
-    print("Hand 2: " + stringGuess)
+    #print("Hand 2: " + stringGuess)
 
     plotFFT(freqs,FFT,peaks)
 
@@ -78,7 +80,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 1
 
-    testfile = "sounds/d#m7b5octave.wav"
+    testfile = "sounds/Amin.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.

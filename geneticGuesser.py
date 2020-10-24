@@ -13,9 +13,9 @@ from collections import OrderedDict
 
 listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
 frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
-noteSounds = {}
+noteSounds = {} #data structure for sound files/signals
 s_rate = 44100
-#Load the files of sounds into a data structure.
+
 
 
 
