@@ -45,7 +45,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
 
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
-    print(closestNoteList)
+    #print(closestNoteList)
     #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
@@ -78,9 +78,9 @@ def main():
     geneticGuesser.loadNoteSounds()
 
     #0 if need to do multi slice analysis. (long files)
-    singleSlice = 1
+    singleSlice = 0
 
-    testfile = "sounds/Amin.wav"
+    testfile = "sounds/CmajScale.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
