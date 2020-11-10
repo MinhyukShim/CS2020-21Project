@@ -25,7 +25,24 @@ def plotFFT(freqs,FFT,peaks):
     #plt.show()
 
 
-def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
+def naiveGuess(closestNoteListNoHarmonics,guessedNotes):
+    guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
+
+    print("Predicted Notes: ")
+    stringGuess = ""
+    for x in range(len(guess)):
+        stringGuess += guess[x][0] + " "
+    print("Hand 1: " + stringGuess)
+
+    stringGuess = ""
+    for x in range(len(guessB)):
+        stringGuess += guessB[x][0] + " "
+    print("Hand 2: " + stringGuess)
+    finalGuess = [row[0] for row in guess] + [row[0] for row in guessB]
+    guessedNotes.append(finalGuess)
+
+def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes):
+
 
     FFT = abs(scipy.fft.fft(signal)) #FFT the signal
     freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
@@ -50,22 +67,10 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames):
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    #geneticGuesser.makeGuess(closestNoteListSorted)
+    geneticGuesser.makeGuess(closestNoteListSorted)
+    #naiveGuess(closestNoteListNoHarmonics,guessedNotes)
 
-
-    guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
-
-    print("Predicted Notes: ")
-    stringGuess = ""
-    for x in range(len(guess)):
-        stringGuess += guess[x][0] + " "
-    print("Hand 1: " + stringGuess)
-
-    stringGuess = ""
-    for x in range(len(guessB)):
-        stringGuess += guessB[x][0] + " "
-    #print("Hand 2: " + stringGuess)
-
+    
     plotFFT(freqs,FFT,peaks)
 
 
@@ -77,10 +82,11 @@ def main():
     frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
     geneticGuesser.loadNoteSounds()
 
+    guessedNotes = []
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/CmajScale.wav"
+    testfile = "sounds/MaryPoly.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -90,7 +96,7 @@ def main():
         signal = signal.sum(axis=1)/2 
 
     if(singleSlice):
-        signalToNote(s_rate,signal,listFrequencies,frequencyNames)
+        signalToNote(s_rate,signal,listFrequencies,frequencyNames,guessedNotes)
     else:
 
         #used to analyse pieces rather than a single slice
@@ -102,7 +108,9 @@ def main():
                 print("Sample: 0  Time: 0  Note: 0")
             else:
                 print("Sample: " + str(splits[x-1]) + "  Time: " + str(float(splits[x-1]/s_rate)) + "  Note: " + str(x))
-            signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames)  
+            signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames,guessedNotes)  
 
+
+    print(guessedNotes)
 
 main()

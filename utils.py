@@ -29,6 +29,26 @@ def generateFrequencyNames(listFrequencies):
 
     return frequencyNames
 
+
+def generateKeySignatures():
+    noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
+    noteNamesLen = len(noteNames)
+    majorSteps = [2,2,1,2,2,2]
+    #keySignatures = []
+    majorScale = []
+    for j in range(len(noteNames)):
+
+        currentNote = j
+        newScale = [noteNames[j]]
+        for i in range(len(majorSteps)):
+            currentNote = (currentNote+majorSteps[i])%noteNamesLen
+            newScale.append(noteNames[currentNote])
+        majorScale.append(newScale)
+
+    print(majorScale)
+    print(len(majorScale))
+
+
 #normalize FFT where biggest peak's amplitude is 1.0
 def normalizeFFT(FFT,freqs):
     
@@ -52,10 +72,10 @@ def multiplyDifference(freqAmp, closestNoteList, listFrequencies):
         #print(" cent: ")
         centDifference = abs(1200 * math.log(float(freqAmp[x][0])/listFrequencies[int(closestNoteList[x][1])], 2))
         #print(centDifference)
-        closestNoteList[x][2] = float(closestNoteList[x][2]) * 1/(centDifference**2 + 1 )
+        closestNoteList[x][2] = float(closestNoteList[x][2]) /(centDifference + 1 )
 
-    #closestNoteList = sorted(closestNoteList, key = lambda x: x[1], reverse=0) # [[freq of peak, amp]] sorted by relative amplitude descending.
-    #print(closestNoteList)
+    closestNoteList = sorted(closestNoteList, key = lambda x: x[2], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
+    print(closestNoteList)
     return closestNoteList
 
 

@@ -82,6 +82,7 @@ def checkOctaves(notes,peakList):
 #implemented second hand check
 # lower notes heavily impact higher notes, way more false positives here.
 def checkSecondHand(peakList,fingerNumbers, fingerRange,takenNotes):
+
     notes = np.array([["","","",""]]) 
     for x in range(len(peakList)):
         found = 0
@@ -92,30 +93,37 @@ def checkSecondHand(peakList,fingerNumbers, fingerRange,takenNotes):
         if(found==0):
             notes = np.append(notes, np.array([peakList[x]]),axis=0)
     notes = np.delete(notes,0,axis=0)
+    #notesCopy =notes.copy()
+    #notesCopy = sorted(notesCopy, key = lambda x: x[2], reverse=1)
     #print(notes)
     if(len(notes)==0 or float(notes[0][2])<amplitudeThreshold):
         return []
-    notes = checkHand(notes, fingerNumbers, fingerRange)
+
+    notes = checkHand(notes, fingerNumbers, fingerRange,2)
+    
     return notes
 
-def checkHand(peakList, fingerNumbers, fingerRange):
+def checkHand(peakList, fingerNumbers, fingerRange,hand):
     peakList = sorted(peakList, key = lambda x: x[2], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
-    #print(peakList)
+        #print(peakList)
+
 
     #add loudest note
 
     notes = np.array([peakList[0]]) 
     fingerNumbers -= 1
-
     for x in range(1,len(peakList)):
         testNote = peakList[x]
-        
+        currentAmplitude = float(testNote[2])
         if (float(testNote[2])>amplitudeThreshold): #if the amplitude is greater than 15% the max peak
             if (checkLargestDifference(testNote, notes, fingerRange)): #check finger range
                 if(fingerNumbers>0): #check if you have enough fingers to play
                     if(checkIfNoteExists(testNote,notes)==False):
                         fingerNumbers -= 1
                         notes = np.append(notes,np.array([testNote]),axis=0)
+
+
+
 
     #check to remove if an octave needs to be removed.
     newNotes = notes
@@ -129,8 +137,10 @@ def makeGuess(peakList):
     notesA = []
     notesB = []
     if(len(peakList)>0):
-        notesA = checkHand(peakList,fingerNumbers,fingerRange)
+        notesA = checkHand(peakList,fingerNumbers,fingerRange,1)
+
         notesB = checkSecondHand(peakList,fingerNumbers,fingerRange,notesA)
+
     #print("check")
     #print(notesB)
     #return notesA
