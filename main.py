@@ -8,6 +8,7 @@ import naiveGuesser
 import utils
 import librosa
 import geneticGuesser
+import KeySignatureID
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
 
@@ -22,7 +23,7 @@ def plotFFT(freqs,FFT,peaks):
     axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (Relative)')
-    plt.show()
+    #plt.show()
 
 
 def naiveGuess(closestNoteListNoHarmonics,guessedNotes):
@@ -38,7 +39,7 @@ def naiveGuess(closestNoteListNoHarmonics,guessedNotes):
     for x in range(len(guessB)):
         stringGuess += guessB[x][0] + " "
     print("Hand 2: " + stringGuess)
-    finalGuess = [row[0] for row in guess] + [row[0] for row in guessB]
+    finalGuess = [row[1] for row in guess] + [row[1] for row in guessB]
     guessedNotes.append(finalGuess)
 
 def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes):
@@ -85,9 +86,9 @@ def main():
 
     guessedNotes = []
     #0 if need to do multi slice analysis. (long files)
-    singleSlice = 1
+    singleSlice = 0
 
-    testfile = "sounds/Amin.wav"
+    testfile = "sounds/CmajScale.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -113,5 +114,6 @@ def main():
 
 
     print(guessedNotes)
+    KeySignatureID.countNoteNames(guessedNotes)
 
 main()

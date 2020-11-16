@@ -29,24 +29,6 @@ def generateFrequencyNames(listFrequencies):
 
     return frequencyNames
 
-#key signatures
-def generateKeySignatures():
-    noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
-    noteNamesLen = len(noteNames)
-    majorSteps = [2,2,1,2,2,2]
-    #keySignatures = []
-    majorScale = []
-    for j in range(len(noteNames)):
-
-        currentNote = j
-        newScale = [noteNames[j]]
-        for i in range(len(majorSteps)):
-            currentNote = (currentNote+majorSteps[i])%noteNamesLen
-            newScale.append(noteNames[currentNote])
-        majorScale.append(newScale)
-
-    print(majorScale)
-    print(len(majorScale))
 
 
 #normalize FFT where biggest peak's amplitude is 1.0
