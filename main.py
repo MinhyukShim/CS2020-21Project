@@ -22,7 +22,7 @@ def plotFFT(freqs,FFT,peaks):
     axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (Relative)')
-    #plt.show()
+    plt.show()
 
 
 def naiveGuess(closestNoteListNoHarmonics,guessedNotes):
@@ -67,9 +67,10 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes):
     closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    geneticGuesser.makeGuess(closestNoteListSorted)
-    #naiveGuess(closestNoteListNoHarmonics,guessedNotes)
-
+    #guess = geneticGuesser.makeGuess(closestNoteListSorted)
+    print(closestNoteListNoHarmonics)
+    naiveGuess(closestNoteListNoHarmonics,guessedNotes)
+    #guessedNotes.append(guess)
     
     plotFFT(freqs,FFT,peaks)
 
@@ -84,9 +85,9 @@ def main():
 
     guessedNotes = []
     #0 if need to do multi slice analysis. (long files)
-    singleSlice = 0
+    singleSlice = 1
 
-    testfile = "sounds/MaryPoly.wav"
+    testfile = "sounds/Amin.wav"
     #bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.

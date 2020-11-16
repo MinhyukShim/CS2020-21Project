@@ -139,7 +139,7 @@ def generateRandomNotes(originalPeaks):
         if (noteName in notes):
             x -= 1
             if(len(notes) >= len(originalPeaks)):
-                print("Test")
+                #print("Test")
                 x += 10000
         else:
 
@@ -290,5 +290,4 @@ def makeGuess(originalPeaks):
 
     for y in range(len((bestCandidates))):
         bestCandidates[y] = list(bestCandidates[y])
-    print(bestCandidates)
-    print(bestCandidates[0])
+    return bestCandidates[0]

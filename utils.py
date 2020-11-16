@@ -29,7 +29,7 @@ def generateFrequencyNames(listFrequencies):
 
     return frequencyNames
 
-
+#key signatures
 def generateKeySignatures():
     noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
     noteNamesLen = len(noteNames)
@@ -84,6 +84,8 @@ def multiplyDifference(freqAmp, closestNoteList, listFrequencies):
 def removeHarmonics(closestNoteList,listFrequencies):
     harmonics = 5
     potentialHarmonics = []
+    #print("original: ")
+    #print(closestNoteList)
     for x in range(len(closestNoteList)):
         fundamentalFrequency = float(closestNoteList[x][3])
         #print("")
@@ -104,6 +106,8 @@ def removeHarmonics(closestNoteList,listFrequencies):
                 potentialHarmonics.append(closestNoteList[y])
     #print(potentialHarmonics)
     closestNoteList = [i for i in closestNoteList + potentialHarmonics if i not in closestNoteList or i not in potentialHarmonics] 
+    #print("no harmonics:")
+    #print(closestNoteList)
     return closestNoteList
 
 #create list of peak frequencies sorted by their relative amplitudes descending
