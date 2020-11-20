@@ -26,7 +26,7 @@ def plotFFT(freqs,FFT,peaks):
     #plt.show()
 
 
-def naiveGuess(closestNoteListNoHarmonics,guessedNotes):
+def naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes):
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
 
     print("Predicted Notes: ")
@@ -41,8 +41,10 @@ def naiveGuess(closestNoteListNoHarmonics,guessedNotes):
     print("Hand 2: " + stringGuess)
     finalGuess = [row[1] for row in guess] + [row[1] for row in guessB]
     guessedNotes.append(finalGuess)
+    nameGuess= [row[0] for row in guess] + [row[0] for row in guessB]
+    namedNotes.append(nameGuess)
 
-def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes):
+def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,namedNotes):
 
 
     FFT = abs(scipy.fft.fft(signal)) #FFT the signal
@@ -69,8 +71,8 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes):
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
     #guess = geneticGuesser.makeGuess(closestNoteListSorted)
-    print(closestNoteListNoHarmonics)
-    naiveGuess(closestNoteListNoHarmonics,guessedNotes)
+    #print(closestNoteListNoHarmonics)
+    naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes)
     #guessedNotes.append(guess)
     
     plotFFT(freqs,FFT,peaks)
@@ -85,11 +87,12 @@ def main():
     geneticGuesser.loadNoteSounds()
 
     guessedNotes = []
+    namedNotes = []
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/CmajScale.wav"
-    #bpm = 60    
+    testfile = "sounds/AmajScale.wav"
+    bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
 
@@ -103,6 +106,8 @@ def main():
 
         #used to analyse pieces rather than a single slice
         splits = librosa.onset.onset_detect(y=signal,sr=44100, units='samples',backtrack=True) #uses onset detection to find where to split
+        bpm = librosa.beat.tempo(y=signal, sr=44100,hop_length=256)
+
         splitSignals= np.array_split(signal, splits)
         for x in range(len(splitSignals)):
             print("  ")
@@ -110,10 +115,12 @@ def main():
                 print("Sample: 0  Time: 0  Note: 0")
             else:
                 print("Sample: " + str(splits[x-1]) + "  Time: " + str(float(splits[x-1]/s_rate)) + "  Note: " + str(x))
-            signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames,guessedNotes)  
+            signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames,guessedNotes,namedNotes)
 
 
-    print(guessedNotes)
-    KeySignatureID.countNoteNames(guessedNotes)
+    print(namedNotes)
+
+    print("BPM: " + str(bpm))
+    KeySignatureID.matchKeySignature(guessedNotes)
 
 main()
