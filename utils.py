@@ -18,7 +18,7 @@ def generateFrequencyNames(listFrequencies):
 
 
     currentNote = 0 #iterates through note names
-    octave = 0 #iterates if current note is a "C"
+    octave = 0 #iterates if current note is a "C" as it is a new octave
     for _ in range (len(listFrequencies)):
         if (noteNames[currentNote] == "C"):
             octave +=1

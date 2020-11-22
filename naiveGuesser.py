@@ -21,7 +21,7 @@
 
 import numpy as np
 
-amplitudeThreshold = 0.40
+amplitudeThreshold = 0.3
 fingerNumbers = 5
 fingerRange = 13 # 13 = octave
 
@@ -105,7 +105,7 @@ def checkSecondHand(peakList,fingerNumbers, fingerRange,takenNotes):
 
 def checkHand(peakList, fingerNumbers, fingerRange,hand):
     peakList = sorted(peakList, key = lambda x: x[2], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
-        #print(peakList)
+    #print(peakList)
 
 
     #add loudest note

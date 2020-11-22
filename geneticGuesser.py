@@ -223,7 +223,7 @@ def makeGuess(originalPeaks):
 
 
     #GA numbers
-    generations = 10
+    generations = 5
     population = 200
     crossBreedAmount = 75
     numberToKeep = 1
@@ -237,6 +237,8 @@ def makeGuess(originalPeaks):
         #make new group of notes for the population
         while len(populationList) <population:
             notes = generateRandomNotes(originalPeaks)
+            if(len(originalPeaks) == 0):
+                print("problem!")
             newNotes = makeOne(originalPeaks,notes)
             populationList.append(newNotes)
 

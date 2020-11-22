@@ -44,6 +44,14 @@ def naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes):
     nameGuess= [row[0] for row in guess] + [row[0] for row in guessB]
     namedNotes.append(nameGuess)
 
+def geneticGuess(closestNoteListSorted,guessedNotes,namedNotes):
+    print(closestNoteListSorted)
+    guess = geneticGuesser.makeGuess(closestNoteListSorted)
+    finalGuess = [row[1] for row in guess]
+    guessedNotes.append(finalGuess)
+    nameGuess= [row[0] for row in guess]
+    namedNotes.append(nameGuess)
+
 def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,namedNotes):
 
 
@@ -67,13 +75,12 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
     #print(closestNoteList)
     #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
-    closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
+    #closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    #guess = geneticGuesser.makeGuess(closestNoteListSorted)
     #print(closestNoteListNoHarmonics)
-    naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes)
-    #guessedNotes.append(guess)
+    #naiveGuess(closestNoteList,guessedNotes,namedNotes)
+    geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
     plotFFT(freqs,FFT,peaks)
 
@@ -91,7 +98,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/AmajScale.wav"
+    testfile = "sounds/shelter.wav"
     bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
