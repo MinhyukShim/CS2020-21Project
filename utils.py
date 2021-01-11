@@ -29,6 +29,8 @@ def generateFrequencyNames(listFrequencies):
 
     return frequencyNames
 
+def noteNameToNumber(noteName,frequencyNames):
+    return frequencyNames.index(noteName) +1
 
 
 #normalize FFT where biggest peak's amplitude is 1.0
@@ -57,7 +59,6 @@ def multiplyDifference(freqAmp, closestNoteList, listFrequencies):
         closestNoteList[x][2] = float(closestNoteList[x][2]) /(centDifference + 1 )
 
     closestNoteList = sorted(closestNoteList, key = lambda x: x[2], reverse=1) # [[freq of peak, amp]] sorted by relative amplitude descending.
-    print(closestNoteList)
     return closestNoteList
 
 

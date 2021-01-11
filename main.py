@@ -11,7 +11,7 @@ import geneticGuesser
 import KeySignatureID
 from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
-
+from music21 import *
 
 def plotFFT(freqs,FFT,peaks):
     plt.plot(freqs[range(len(FFT)//2)], FFT[range(len(FFT)//2)])       #x = frequencies, y = FFT amplitude
@@ -23,7 +23,7 @@ def plotFFT(freqs,FFT,peaks):
     axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (Relative)')
-    #plt.show()
+    plt.show()
 
 
 def naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes):
@@ -38,19 +38,20 @@ def naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes):
     stringGuess = ""
     for x in range(len(guessB)):
         stringGuess += guessB[x][0] + " "
-    print("Hand 2: " + stringGuess)
+    #print("Hand 2: " + stringGuess)
     finalGuess = [row[1] for row in guess] + [row[1] for row in guessB]
     guessedNotes.append(finalGuess)
     nameGuess= [row[0] for row in guess] + [row[0] for row in guessB]
     namedNotes.append(nameGuess)
 
 def geneticGuess(closestNoteListSorted,guessedNotes,namedNotes):
-    print(closestNoteListSorted)
+    #print(closestNoteListSorted)
     guess = geneticGuesser.makeGuess(closestNoteListSorted)
-    finalGuess = [row[1] for row in guess]
-    guessedNotes.append(finalGuess)
+
+    #finalGuess = [row[1] for row in guess]
+    #guessedNotes.append(finalGuess)
     nameGuess= [row[0] for row in guess]
-    namedNotes.append(nameGuess)
+    namedNotes.append(guess)
 
 def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,namedNotes):
 
@@ -79,16 +80,37 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
     #print(closestNoteListNoHarmonics)
-    #naiveGuess(closestNoteList,guessedNotes,namedNotes)
-    geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
+    naiveGuess(closestNoteList,guessedNotes,namedNotes)
+    #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
-    plotFFT(freqs,FFT,peaks)
+    #plotFFT(freqs,FFT,peaks)
 
 
+
+
+def convertToXML(namedNotes,bpm,keySignature,frequencyNames):
+    stream1 = stream.Stream()
+    tmp = tempo.MetronomeMark(number=int(bpm))
+    tsFourFour = meter.TimeSignature('4/4')
+    keySign = key.Key('B')
+    stream1.append(tsFourFour)
+    stream1.append(tmp)
+    stream1.append(keySign)
+    for x in range(len(namedNotes)):
+        noteList =[]
+        for y in range(len(namedNotes[x])):
+            
+            #midi numbers offset by +20 https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
+            currentNote = utils.noteNameToNumber(namedNotes[x][y],frequencyNames) + 20
+            noteList.append(note.Note(currentNote))
+        c1 = chord.Chord(noteList)
+        stream1.append(c1)
+    stream1.write("musicxml", "test")
 
 
 def main():
-
+    us = environment.UserSettings()
+    us['musicxmlPath'] = 'C:\\Program Files\\MuseScore 3\\bin\\MuseScore3.exe'
     listFrequencies = utils.generateFrequencies() #[27.5 ... 4186.009]
     frequencyNames = utils.generateFrequencyNames(listFrequencies) #['A-0' ... 'C-8']
     geneticGuesser.loadNoteSounds()
@@ -98,7 +120,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/shelter.wav"
+    testfile = "sounds/uchiageChorus.wav"
     bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -108,7 +130,7 @@ def main():
         signal = signal.sum(axis=1)/2 
 
     if(singleSlice):
-        signalToNote(s_rate,signal,listFrequencies,frequencyNames,guessedNotes)
+        signalToNote(s_rate,signal,listFrequencies,frequencyNames,guessedNotes,namedNotes)
     else:
 
         #used to analyse pieces rather than a single slice
@@ -125,9 +147,11 @@ def main():
             signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames,guessedNotes,namedNotes)
 
 
-    print(namedNotes)
-
+    #print(namedNotes)
     print("BPM: " + str(bpm))
-    KeySignatureID.matchKeySignature(guessedNotes)
+    keySignature = KeySignatureID.matchKeySignature(guessedNotes)
+    convertToXML(namedNotes,bpm,keySignature,frequencyNames)
+
+
 
 main()

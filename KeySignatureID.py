@@ -72,4 +72,5 @@ def matchKeySignature(finalGuess):
             bestMatch=currentCount
     
     print("Key: " + str(bestKey[0]) + " major")
+    return bestKey[0]
 

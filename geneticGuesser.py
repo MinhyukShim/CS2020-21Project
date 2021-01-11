@@ -219,7 +219,6 @@ def sortPopulation(populationList):
 
 def makeGuess(originalPeaks):
 
-    #print(testNotes(originalPeaks))
 
 
     #GA numbers
@@ -274,7 +273,7 @@ def makeGuess(originalPeaks):
             newNotes = makeOne(originalPeaks, newNotes)
             newPopulation.append(newNotes)
 
-
+        print("accuracy of best:")
         print(makeOne(originalPeaks, populationList[0][0]))
         print(calculateScore(populationList[0][1]))
         bestCandidates = [row[0] for row in populationList[:20]].copy()
@@ -283,8 +282,9 @@ def makeGuess(originalPeaks):
         populationList = []
         populationList = newPopulation.copy()
     
-    #print(bestCandidates)
+
     print("")
+    print(bestCandidates)
     #print(calculateScore(bestCandidates[0][1]))
     for y in range(len((bestCandidates))):
         bestCandidates[y] = tuple(sorted(bestCandidates[y]))
@@ -292,4 +292,5 @@ def makeGuess(originalPeaks):
 
     for y in range(len((bestCandidates))):
         bestCandidates[y] = list(bestCandidates[y])
+
     return bestCandidates[0]
