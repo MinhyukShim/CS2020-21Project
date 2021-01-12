@@ -20,7 +20,8 @@
 
 #key signatures using each note as the tonic and then building major scales
 def generateKeySignatures():
-    noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
+    #noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
+    noteNames = ["A","A#","B","C", "C#", "D", "D#", "E", "F","F#", "G", "G#"]
     noteNamesLen = len(noteNames)
     majorSteps = [2,2,1,2,2,2]
     #keySignatures = []
@@ -41,7 +42,8 @@ def generateKeySignatures():
 #get the guessed notes and count which notes are played.
 def countNoteNames(finalGuess):
     #First note in piano is A-0
-    noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
+    #noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
+    noteNames = ["A","A#","B","C", "C#", "D", "D#", "E", "F","F#", "G", "G#"]
     noteCount = {}
     for x in range(len(noteNames)):
         noteCount[noteNames[x]] = 0

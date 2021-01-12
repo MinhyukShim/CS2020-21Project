@@ -85,25 +85,51 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     
     #plotFFT(freqs,FFT,peaks)
 
+def generateBeatTimings(bpm):
+    quarterNote = 60/(bpm)
+    print(quarterNote)
+    return quarterNote
 
+def getClosestTiming(timeOfNotes,index, quarterNoteLength):
+    quarterMultiplier = [1/16,1/8,1/4,1/2,1,2,4,8,16]
+    if(index == len(timeOfNotes)-1 or len(timeOfNotes)==0):
+        return 1.0
+    lengthOfNote = timeOfNotes[index+1] - timeOfNotes[index]
+    closestMultiplier = 0
+    closestDistance = 100000000
 
+    for x in range(len(quarterMultiplier)):
+        distance = abs(quarterMultiplier[x]*quarterNoteLength - lengthOfNote)
+        if(distance< closestDistance):
+            closestDistance = distance
+            closestMultiplier = quarterMultiplier[x]
+    
+    return closestMultiplier
 
-def convertToXML(namedNotes,bpm,keySignature,frequencyNames):
+def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
+
+    quarterNoteLength =generateBeatTimings(bpm)
     stream1 = stream.Stream()
     tmp = tempo.MetronomeMark(number=int(bpm))
     tsFourFour = meter.TimeSignature('4/4')
-    keySign = key.Key('B')
+    keySign = key.Key(keySignature)
     stream1.append(tsFourFour)
     stream1.append(tmp)
     stream1.append(keySign)
     for x in range(len(namedNotes)):
         noteList =[]
+        timing = getClosestTiming(timeOfNotes,x,quarterNoteLength)
         for y in range(len(namedNotes[x])):
             
             #midi numbers offset by +20 https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
             currentNote = utils.noteNameToNumber(namedNotes[x][y],frequencyNames) + 20
-            noteList.append(note.Note(currentNote))
+            currentNote = pitch.Pitch(currentNote)
+            if(currentNote.accidental.name == "natural"):
+                currentNote.accidental = None
+            #print(currentNote.accidental.name)
+            noteList.append(currentNote)
         c1 = chord.Chord(noteList)
+        c1.duration.quarterLength = timing
         stream1.append(c1)
     stream1.write("musicxml", "test")
 
@@ -117,10 +143,11 @@ def main():
 
     guessedNotes = []
     namedNotes = []
+    timeOfNotes = []   
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/uchiageChorus.wav"
+    testfile = "sounds/AmajScaleDiff.wav"
     bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
@@ -142,15 +169,17 @@ def main():
             print("  ")
             if(x==0):
                 print("Sample: 0  Time: 0  Note: 0")
+                timeOfNotes.append(0)
             else:
                 print("Sample: " + str(splits[x-1]) + "  Time: " + str(float(splits[x-1]/s_rate)) + "  Note: " + str(x))
+                timeOfNotes.append(float(splits[x-1]/s_rate))
             signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames,guessedNotes,namedNotes)
 
 
     #print(namedNotes)
     print("BPM: " + str(bpm))
     keySignature = KeySignatureID.matchKeySignature(guessedNotes)
-    convertToXML(namedNotes,bpm,keySignature,frequencyNames)
+    convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes)
 
 
 
