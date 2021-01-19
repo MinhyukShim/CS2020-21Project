@@ -80,8 +80,8 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
     #print(closestNoteListNoHarmonics)
-    naiveGuess(closestNoteList,guessedNotes,namedNotes)
-    #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
+    #naiveGuess(closestNoteList,guessedNotes,namedNotes)
+    geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
     #plotFFT(freqs,FFT,peaks)
 
@@ -109,13 +109,18 @@ def getClosestTiming(timeOfNotes,index, quarterNoteLength):
 def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
 
     quarterNoteLength =generateBeatTimings(bpm)
-    stream1 = stream.Stream()
+    trebleStream = stream.Stream()
+    bassStream = stream.Stream()
+    trebleStream.clef = clef.TrebleClef()
+    bassStream.clef = clef.BassClef()
     tmp = tempo.MetronomeMark(number=int(bpm))
     tsFourFour = meter.TimeSignature('4/4')
     keySign = key.Key(keySignature)
-    stream1.append(tsFourFour)
-    stream1.append(tmp)
-    stream1.append(keySign)
+    trebleStream.append(tsFourFour)
+    trebleStream.append(tmp)
+    trebleStream.append(keySign)
+    bassStream.append(tsFourFour)
+    bassStream.append(keySign)
     for x in range(len(namedNotes)):
         noteList =[]
         timing = getClosestTiming(timeOfNotes,x,quarterNoteLength)
@@ -130,8 +135,18 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
             noteList.append(currentNote)
         c1 = chord.Chord(noteList)
         c1.duration.quarterLength = timing
-        stream1.append(c1)
-    stream1.write("musicxml", "test")
+        trebleStream.append(c1)
+        r = note.Rest()
+        r.duration.quarterLength = timing
+        bassStream.append(r)
+
+    s = stream.Score()
+    s.insert(0, trebleStream)
+    s.insert(0, bassStream)
+    staffGroup1 = layout.StaffGroup([trebleStream,bassStream],name='Marimba', abbreviation='Mba.', symbol='brace')
+    s.insert(staffGroup1)
+    s.write("musicxml", "test")
+    #bassStream.write("musicxml", "test")
 
 
 def main():
@@ -147,7 +162,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/AmajScaleDiff.wav"
+    testfile = "sounds/uchiageChorusTreble.wav"
     bpm = 60    
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
