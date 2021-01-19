@@ -21,7 +21,7 @@
 
 import numpy as np
 
-amplitudeThreshold = 0.25
+amplitudeThreshold = 0.45
 fingerNumbers = 5
 fingerRange = 13 # 13 = octave
 

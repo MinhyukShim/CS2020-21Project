@@ -7,6 +7,7 @@ import wave
 import naiveGuesser
 import utils
 import librosa
+import librosa.display
 import geneticGuesser
 import KeySignatureID
 from matplotlib import pyplot as plt
@@ -80,8 +81,8 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
     #print(closestNoteListNoHarmonics)
-    #naiveGuess(closestNoteList,guessedNotes,namedNotes)
-    geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
+    naiveGuess(closestNoteList,guessedNotes,namedNotes)
+    #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
     #plotFFT(freqs,FFT,peaks)
 
@@ -162,21 +163,29 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/uchiageChorusTreble.wav"
+    testfile = "sounds/MaryHad.wav"
     bpm = 60    
 
+
+
+
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
+
 
     #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
     if wave.open(testfile).getnchannels()==2:
         signal = signal.sum(axis=1)/2 
+
+    fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True)
+
+
 
     if(singleSlice):
         signalToNote(s_rate,signal,listFrequencies,frequencyNames,guessedNotes,namedNotes)
     else:
 
         #used to analyse pieces rather than a single slice
-        splits = librosa.onset.onset_detect(y=signal,sr=44100, units='samples',backtrack=True) #uses onset detection to find where to split
+        splits = librosa.onset.onset_detect(y=signal,sr=44100,hop_length=512, units='samples',backtrack=True) #uses onset detection to find where to split
         bpm = librosa.beat.tempo(y=signal, sr=44100,hop_length=256)
 
         splitSignals= np.array_split(signal, splits)
