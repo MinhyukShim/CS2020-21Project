@@ -7,6 +7,7 @@ import wave
 import naiveGuesser
 import utils
 import librosa
+import math
 import librosa.display
 import geneticGuesser
 import KeySignatureID
@@ -58,9 +59,10 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
 
 
     FFT = abs(scipy.fft.fft(signal)) #FFT the signal
+    
     freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
     FFT = utils.normalizeFFT(FFT,freqs) #normalize the FFT graph so that the largest peak has an amplitude of 1.0
-
+    #FFT = np.log(FFT)
     #find the peaks of the normalized graph and get rid of negative peaks.
     peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
     peaks = [x for x in peaks if freqs[x]>=0] 

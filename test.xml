@@ -21,16 +21,16 @@
       <group-symbol>brace</group-symbol>
       <group-barline>yes</group-barline>
     </part-group>
-    <score-part id="P4bbd4730f78041f2b45c3147af3d7175">
+    <score-part id="P68087509f58214ca8839c91fbfffff60">
       <part-name />
     </score-part>
-    <score-part id="P32e46b89dd393ffcc0466dfd1d61b3c6">
+    <score-part id="P3b8f5fc861945fa8d58a0b1eb57f43ff">
       <part-name />
     </score-part>
     <part-group number="1" type="stop" />
   </part-list>
   <!--=========================== Part 1 ===========================-->
-  <part id="P4bbd4730f78041f2b45c3147af3d7175">
+  <part id="P68087509f58214ca8839c91fbfffff60">
     <!--========================= Measure 1 ==========================-->
     <measure number="1">
       <attributes>
@@ -166,7 +166,7 @@
     </measure>
   </part>
   <!--=========================== Part 2 ===========================-->
-  <part id="P32e46b89dd393ffcc0466dfd1d61b3c6">
+  <part id="P3b8f5fc861945fa8d58a0b1eb57f43ff">
     <!--========================= Measure 1 ==========================-->
     <measure number="1">
       <attributes>
