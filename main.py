@@ -84,7 +84,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     naiveGuess(closestNoteList,guessedNotes,namedNotes)
     #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
-    #plotFFT(freqs,FFT,peaks)
+    plotFFT(freqs,FFT,peaks)
 
 def generateBeatTimings(bpm):
     quarterNote = 60/(bpm)
@@ -122,8 +122,12 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
     trebleStream.append(keySign)
     bassStream.append(tsFourFour)
     bassStream.append(keySign)
+
+
+
     for x in range(len(namedNotes)):
         noteList =[]
+        bassList = []
         timing = getClosestTiming(timeOfNotes,x,quarterNoteLength)
         for y in range(len(namedNotes[x])):
             
@@ -133,18 +137,27 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
             if(currentNote.accidental.name == "natural"):
                 currentNote.accidental = None
             #print(currentNote.accidental.name)
-            noteList.append(currentNote)
+            if(utils.noteNameToNumber(namedNotes[x][y],frequencyNames) + 20 <60):
+                bassList.append(currentNote)
+            else:
+                noteList.append(currentNote)
+
+
+
         c1 = chord.Chord(noteList)
         c1.duration.quarterLength = timing
+
+        c2 = chord.Chord(bassList)
+        c2.duration.quarterLength = timing
         trebleStream.append(c1)
-        r = note.Rest()
-        r.duration.quarterLength = timing
-        bassStream.append(r)
+        bassList.append(c2)
+
+        bassStream.append(c2)
 
     s = stream.Score()
     s.insert(0, trebleStream)
     s.insert(0, bassStream)
-    staffGroup1 = layout.StaffGroup([trebleStream,bassStream],name='Marimba', abbreviation='Mba.', symbol='brace')
+    staffGroup1 = layout.StaffGroup([trebleStream,bassStream],name='Piano', abbreviation='Pno.', symbol='brace')
     s.insert(staffGroup1)
     s.write("musicxml", "test")
     #bassStream.write("musicxml", "test")
@@ -163,7 +176,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/CmajScale.wav"
+    testfile = "sounds/MaryStart.wav"
     bpm = 60    
 
 
