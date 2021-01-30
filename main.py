@@ -84,7 +84,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     naiveGuess(closestNoteList,guessedNotes,namedNotes)
     #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
-    plotFFT(freqs,FFT,peaks)
+    #plotFFT(freqs,FFT,peaks)
 
 def generateBeatTimings(bpm):
     quarterNote = 60/(bpm)
@@ -176,7 +176,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/MaryStart.wav"
+    testfile = "sounds/DemonsChorus.wav"
     bpm = 60    
 
 

@@ -65,9 +65,10 @@ def identifyNotes(noteSlice):
     return noteList
 
 def eliminateHarmonics(noteList):
-    harmonics = [12,7,5,4,3] #https://www.earmaster.com/music-theory-online/ch04/chapter-4-5.html
-    big_threshold = 1.0
-    singleton_threshold = -25.0
+    harmonics = [12,7,5,4,3,3,2] #https://www.earmaster.com/music-theory-online/ch04/chapter-4-5.html
+    big_threshold = 2.5
+    singleton_threshold = -35.0
+    loud_threshold = -8
     harmonics =np.cumsum(harmonics)
     indexOfHarmonics = []
 
@@ -76,6 +77,8 @@ def eliminateHarmonics(noteList):
         current_decibel = noteList[x]["decibel"]
         harmonic_found = False
 
+
+        numberOfMatches = 0
         for y in range(len(harmonics)):
             noteNumber = tentative_fundamental["noteNum"]#fundamental note number
             noteNumber += harmonics[y]; #harmonic to check
@@ -84,12 +87,22 @@ def eliminateHarmonics(noteList):
                 #if match check decibels
                 if(noteList[z]["noteNum"]==noteNumber):
                     harmonic_found = True
-                    if(noteList[z]["decibel"] <current_decibel ):
+                    numberOfMatches = numberOfMatches+1
+                    if(noteList[z]["decibel"] <current_decibel-(big_threshold) ):
                         indexOfHarmonics.append(z)
         
         if(harmonic_found==False or current_decibel<singleton_threshold):
             indexOfHarmonics.append(x)
-    
+
+        if(numberOfMatches>=4):
+            for y in range(len(harmonics)):
+                noteNumber = tentative_fundamental["noteNum"]#fundamental note number
+                noteNumber += harmonics[y]; #harmonic to check
+                for z in range(len(noteList)):
+
+                    #if match check decibels
+                    if(noteList[z]["noteNum"]==noteNumber and noteList[z]["decibel"] < loud_threshold):
+                        indexOfHarmonics.append(z)
     noteList = [i for j, i in enumerate(noteList) if j not in indexOfHarmonics]#https://stackoverflow.com/questions/11303225/how-to-remove-multiple-indexes-from-a-list-at-the-same-time/41079803
     return noteList
 
@@ -118,7 +131,16 @@ def loopThroughOnset(D_trans):
                     noteCount.append(noteList[y]["noteName"])
                     noteDecibels.append([noteList[y]["noteName"],noteList[y]["decibel"]])
             count = Counter(noteCount)
-            print(count.most_common(1)[0][0])
+            threshold_number = (count.most_common(1)[0][1] )/2
+            finalNotes = []
+
+            iteratable_count = count.most_common(len(count))
+            for x in range(len(iteratable_count)):
+                if(iteratable_count[x][1]>=threshold_number):
+                    finalNotes.append(iteratable_count[x][0])
+
+            print(finalNotes)
+            print(count)
             #print(noteDecibels)
 
         else:
@@ -153,7 +175,7 @@ guessedNotes = []
 namedNotes = []
 timeOfNotes = []   
 
-testfile = "sounds/MaryStart.wav"
+testfile = "sounds/DearYou.wav"
 bpm = 60    
 
 
@@ -171,7 +193,7 @@ fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True)
 
 
 hop_length = 256 #increment of sample steps
-window_size= 8192   #detail of fft
+window_size= 8192  #detail of fft
 splits = librosa.onset.onset_detect(y=signal,sr=44100,hop_length=hop_length, units='samples',backtrack=True) #uses onset detection to find where to split
 FFT = np.abs(librosa.stft(signal, n_fft=window_size, hop_length=hop_length,
               center=False))
@@ -188,7 +210,7 @@ loopThroughOnset(D_trans)
 
 
 
-displaySpectrogram()
+#displaySpectrogram()
 
 
 
