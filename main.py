@@ -176,7 +176,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/DemonsChorus.wav"
+    testfile = "sounds/SnowHalationIntro.wav"
     bpm = 60    
 
 
