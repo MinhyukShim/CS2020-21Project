@@ -88,6 +88,7 @@ def identifyNotes(noteSlice):
     noteList = eliminateHarmonics(noteList)
     return noteList
 
+
 def eliminateHarmonics(noteList):
     harmonics = [12,7,5,4,3,3,2] #https://www.earmaster.com/music-theory-online/ch04/chapter-4-5.html
     big_threshold = 2.5
@@ -168,10 +169,11 @@ def loopThroughOnset(D_trans):
         for x in range(32):
             percentage += newPercentage
             index = int(len(D_trans)*(percentage)) 
-            noteList = identifyNotes(D_trans[index])
-            for y in range(len(noteList)):
-                noteCount.append(noteList[y]["noteName"])
-                noteDecibels.append(noteList[y])
+            if(not index>=len(D_trans)):
+                noteList = identifyNotes(D_trans[index])
+                for y in range(len(noteList)):
+                    noteCount.append(noteList[y]["noteName"])
+                    noteDecibels.append(noteList[y])
                 
         count = Counter(noteCount)
         if(len(count)>0):
@@ -234,7 +236,7 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
     bassStream.clef = clef.BassClef()
     tmp = tempo.MetronomeMark(number=int(bpm))
     tsFourFour = meter.TimeSignature('4/4')
-    keySign = key.Key(keySignature)
+    keySign = key.KeySignature(keySignature)
     trebleStream.append(tsFourFour)
     trebleStream.append(tmp)
     trebleStream.append(keySign)
@@ -295,6 +297,42 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
     s.write("musicxml", "test")
 
 
+def keySignatureIdentification(guessedNotes): 
+    majorProfile =[6.35,	2.23,	3.48,	2.33,	4.38,	4.09,	2.52,	5.19,	2.39,	3.66,	2.29,	2.88] #http://rnhart.net/articles/key-finding/
+    minorProfile = [6.33,	2.68,	3.52,	5.38,	2.60,	3.53,	2.54,	4.75,	3.98,	2.69,	3.34,	3.17]
+
+    #count number of each notes starting with A.
+    noteCount = []
+
+    for x in range(12):
+
+        count= 0
+        for y in range(len(guessedNotes)):
+            index = frequencyNames.index(guessedNotes[y])
+            index = index%12
+            if(index==x):
+                count = count+1
+
+        noteCount.append(count)
+    
+    print(noteCount)
+
+    #test major
+    coefficients = []
+    for x in range(12):
+        coefficients.append(np.amin(np.corrcoef(majorProfile,noteCount)))
+        noteCount =np.roll(noteCount,-1)
+
+    for x in range(12):
+        coefficients.append(np.amin(np.corrcoef(minorProfile,noteCount)))
+        noteCount =np.roll(noteCount,-1)
+
+    index = np.argmax(coefficients)
+    majmin = "maj"
+    if(index>12):
+        majmin = "min"
+
+    return index, majmin
 
 
 
@@ -311,7 +349,7 @@ prominence = 40
 height = 30
 
 padding = "sounds/padding.wav"
-testfile = "sounds/MaryPoly.wav"
+testfile = "sounds/demons2.wav"
 bpm = 60    
 
 
@@ -348,14 +386,28 @@ displaySpectrogram(D_power,ax2)
 #transpose matrix so that time goes along x axis and range of freqs goes y axis. D_trans[x][y]
 D_trans = np.transpose(D)
 output=loopThroughOnset(D_trans)
-#print(output)
 semitone_filterbank, sample_rates = librosa.filters.semitone_filterbank()
 
 timeOfNotes = []
 for x in range(len(splits)):
     timeOfNotes.append(float(splits[x]/s_rate))
 
-convertToXML(output,bpm,"C",frequencyNames,timeOfNotes)
+extractNotesOnly = []
+
+for x in range(len(output)):
+    for y in range(len(output[x][0])):
+        extractNotesOnly.append(output[x][0][y])
+
+keyValue, majmin = keySignatureIdentification(extractNotesOnly)
+noteNames = ["A","A#Bb","B","C", "C#Db", "D", "D#Eb", "E", "F","F#Gb", "G", "G#Ab"]
+circleOfFifthsMaj =[3,-2,5,0,-5,2,-3,4,-1,6,1,-4]
+circleOfFifthsMin = [0,-5,2,-3,4,-1,-6,1,-4,3,-2,5]
+
+circleOfFifths = np.concatenate([circleOfFifthsMaj, circleOfFifthsMin])
+
+print(circleOfFifths[keyValue],majmin)
+
+convertToXML(output,bpm,int(circleOfFifths[keyValue]),frequencyNames,timeOfNotes)
 '''
 print("SECOND")
 
