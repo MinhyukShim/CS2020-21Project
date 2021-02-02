@@ -349,14 +349,14 @@ prominence = 40
 height = 30
 
 padding = "sounds/padding.wav"
-testfile = "sounds/demons2.wav"
+testfile = "sounds/MaryPoly.wav"
 bpm = 60    
 
 
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
 signal = np.transpose(signal)
-signal = np.pad(signal,pad_width=[250,250], mode='constant')
+signal = np.pad(signal,pad_width=((0,0),(10000,0)), mode='constant')
 signal = np.transpose(signal)
 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
 if wave.open(testfile).getnchannels()==2:
@@ -376,13 +376,14 @@ D = librosa.amplitude_to_db(FFT,
                         ref=np.max)           
 
 D_power = librosa.db_to_power(D,80)
-ax1 =plt.subplot(1, 2, 1)
+ax1 =plt.subplot(1, 1, 1)
 displaySpectrogram(D,ax1)
 
-ax2=plt.subplot(1, 2, 2)
-displaySpectrogram(D_power,ax2)
-#plt.show()
+##ax2=plt.subplot(1, 2, 2)
+#displaySpectrogram(D_power,ax2)
 
+
+plt.show()
 #transpose matrix so that time goes along x axis and range of freqs goes y axis. D_trans[x][y]
 D_trans = np.transpose(D)
 output=loopThroughOnset(D_trans)

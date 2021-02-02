@@ -176,14 +176,15 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/SnowHalationIntro.wav"
+    testfile = "sounds/AmajScaleDiff.wav"
     bpm = 60    
 
 
 
-
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
-
+    signal = np.transpose(signal)
+    signal = np.pad(signal,pad_width=[250,250], mode='constant')
+    signal = np.transpose(signal)
 
     #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
     if wave.open(testfile).getnchannels()==2:
