@@ -349,7 +349,7 @@ prominence = 40
 height = 30
 
 padding = "sounds/padding.wav"
-testfile = "sounds/MaryPoly.wav"
+testfile = "sounds/demonstest.wav"
 bpm = 60    
 
 

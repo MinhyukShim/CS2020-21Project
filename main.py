@@ -62,14 +62,25 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     
     freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
     FFT = utils.normalizeFFT(FFT,freqs) #normalize the FFT graph so that the largest peak has an amplitude of 1.0
-    #FFT = np.log(FFT)
+
+    d_down =scipy.signal.decimate(FFT,2,axis=0)
+    pad_size = len(FFT) - len(d_down)
+    print(pad_size)
+    d_down = np.pad(d_down,((0,pad_size)),constant_values=0)
     #find the peaks of the normalized graph and get rid of negative peaks.
-    peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
+
+    total = d_down*FFT
+
+    d_down =scipy.signal.decimate(FFT,3,axis=0)
+    pad_size = len(FFT) - len(d_down)
+    d_down = np.pad(d_down,((0,pad_size)),constant_values=0)
+    total = total*d_down
+
+    total = utils.normalizeFFT(total,freqs)
+    peaks, _ = find_peaks(total,prominence=0.05, height=0.05) 
     peaks = [x for x in peaks if freqs[x]>=0] 
-
-
     #[[Freq,Amplitude]] get the frequency of the peaks and the amplitutde. Ascending frequency.
-    freqAmp = utils.createListOfPeaks(peaks,freqs,FFT) 
+    freqAmp = utils.createListOfPeaks(peaks,freqs,total) 
 
 
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
@@ -84,7 +95,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     naiveGuess(closestNoteList,guessedNotes,namedNotes)
     #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
-    #plotFFT(freqs,FFT,peaks)
+    #plotFFT(freqs,total,peaks)
 
 def generateBeatTimings(bpm):
     quarterNote = 60/(bpm)
@@ -143,16 +154,25 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
                 noteList.append(currentNote)
 
 
+        if(len(bassList)==0):
+            r = note.Rest()
+            r.duration.quarterLength = timing
+            bassList.append(r)
+            bassStream.append(bassList)
+        else:
+            c2 = chord.Chord(bassList)
+            c2.duration.quarterLength = timing
+            bassStream.append(c2)
 
-        c1 = chord.Chord(noteList)
-        c1.duration.quarterLength = timing
-
-        c2 = chord.Chord(bassList)
-        c2.duration.quarterLength = timing
-        trebleStream.append(c1)
-        bassList.append(c2)
-
-        bassStream.append(c2)
+        if(len(noteList)==0):
+            r = note.Rest()
+            r.duration.quarterLength = timing
+            noteList.append(r)
+            trebleStream.append(noteList)
+        else:        
+            c1 = chord.Chord(noteList)
+            c1.duration.quarterLength = timing
+            trebleStream.append(c1)
 
     s = stream.Score()
     s.insert(0, trebleStream)
@@ -176,14 +196,14 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/AmajScaleDiff.wav"
+    testfile = "sounds/AmajScale.wav"
     bpm = 60    
 
 
 
     s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
     signal = np.transpose(signal)
-    signal = np.pad(signal,pad_width=[250,250], mode='constant')
+    signal = np.pad(signal,pad_width=[500,500], mode='constant')
     signal = np.transpose(signal)
 
     #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
@@ -205,13 +225,11 @@ def main():
         splitSignals= np.array_split(signal, splits)
         for x in range(len(splitSignals)):
             print("  ")
-            if(x==0):
-                print("Sample: 0  Time: 0  Note: 0")
-                timeOfNotes.append(0)
-            else:
+
+            if(x!=0):
                 print("Sample: " + str(splits[x-1]) + "  Time: " + str(float(splits[x-1]/s_rate)) + "  Note: " + str(x))
                 timeOfNotes.append(float(splits[x-1]/s_rate))
-            signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames,guessedNotes,namedNotes)
+                signalToNote(s_rate,splitSignals[x],listFrequencies,frequencyNames,guessedNotes,namedNotes)
 
 
     #print(namedNotes)
