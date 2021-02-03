@@ -345,11 +345,11 @@ guessedNotes = []
 namedNotes = []
 timeOfNotes = [] 
 
-prominence = 40
-height = 30
+prominence = 20
+height = 20
 
 padding = "sounds/padding.wav"
-testfile = "sounds/demonstest.wav"
+testfile = "sounds/furelise.wav"
 bpm = 60    
 
 

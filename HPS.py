@@ -231,7 +231,21 @@ def keySignatureIdentification(guessedNotes):
 
 
 
+def filterPeaks(signal):
+    transed = np.transpose(signal)
+    full_signal = []
+    for x in range(len(transed)):
+        peaks, _ = find_peaks(transed[x],prominence=1) 
+        signal_slice = []
+        for y in range(len(transed[x])):
+            if(y in peaks):
+                signal_slice.append(transed[x][y])
+            else:
+                signal_slice.append(-80)
+        full_signal.append(signal_slice)
 
+    full_signal = np.transpose(full_signal)
+    return full_signal
 
 def HPS(inputSignal,iterations):
     downsamples = []
@@ -258,7 +272,7 @@ timeOfNotes = []
 
 
 
-testfile = "sounds/demonstest.wav"
+testfile = "sounds/Fireflies.wav"
 bpm = 60    
 
 
@@ -275,16 +289,18 @@ if wave.open(testfile).getnchannels()==2:
 
 bpm = librosa.beat.tempo(y=signal, sr=44100,hop_length=256)
 hop_length = 128 #increment of sample steps
-window_size= 8192 #detail of fft
+window_size= 8192*2 #detail of fft
 
 
 splits = librosa.onset.onset_detect(y=signal,sr=44100,hop_length=hop_length, units='samples',backtrack=True) #uses onset detection to find where to split
 
-prominence = 20
-height = 20
-
+prominence = 10
+height = 15
+hps_iteration = 2
 splitSignals= np.array_split(signal, splits)
 output = []
+
+
 for x in range(1,len(splitSignals)):
     fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True)
     if(len(splitSignals[x])<window_size):
@@ -296,14 +312,17 @@ for x in range(1,len(splitSignals)):
     freqs = librosa.fft_frequencies(sr=44100,n_fft=window_size)
 
 
-    #FFT = librosa.amplitude_to_db(FFT,ref=np.max)   
+    #FFT = librosa.amplitude_to_db(FFT,ref=np.max) 
+    #print(FFT)
+    #FFT = filterPeaks(FFT)
+    #print(FFT)
     initial = np.copy(FFT)
     initial *= 100.0/initial.max() # normalize
     ax1 =plt.subplot(1, 2, 1)
     displaySpectrogram(initial,ax1)
     ax4=plt.subplot(1, 2, 2)
 
-    hps_signal = HPS(initial,2)
+    hps_signal = HPS(initial,hps_iteration)
     hps_signal *= 100.0/hps_signal.max() # normalize
     displaySpectrogram(hps_signal,ax4)
 
