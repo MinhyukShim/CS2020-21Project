@@ -55,6 +55,22 @@ def geneticGuess(closestNoteListSorted,guessedNotes,namedNotes):
     nameGuess= [row[0] for row in guess]
     namedNotes.append(guess)
 
+
+def HPS(inputSignal,iterations):
+    downsamples = []
+    for x in range(iterations):
+        downsampled = np.abs(scipy.signal.decimate(inputSignal,x+2,axis=0))
+        pad_size = len(inputSignal) - len(downsampled)
+        downsampled = np.pad(downsampled,((0,pad_size)),constant_values=0)
+        downsamples.append(downsampled)
+
+    total = np.copy(inputSignal)
+    for x in range(len(downsamples)):
+        total = total* downsamples[x]
+    return total
+
+
+
 def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,namedNotes):
 
 
@@ -63,19 +79,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
     FFT = utils.normalizeFFT(FFT,freqs) #normalize the FFT graph so that the largest peak has an amplitude of 1.0
 
-    d_down =scipy.signal.decimate(FFT,2,axis=0)
-    pad_size = len(FFT) - len(d_down)
-    print(pad_size)
-    d_down = np.pad(d_down,((0,pad_size)),constant_values=0)
-    #find the peaks of the normalized graph and get rid of negative peaks.
-
-    total = d_down*FFT
-
-    d_down =scipy.signal.decimate(FFT,3,axis=0)
-    pad_size = len(FFT) - len(d_down)
-    d_down = np.pad(d_down,((0,pad_size)),constant_values=0)
-    total = total*d_down
-
+    total =HPS(FFT,2)
     total = utils.normalizeFFT(total,freqs)
     peaks, _ = find_peaks(total,prominence=0.05, height=0.05) 
     peaks = [x for x in peaks if freqs[x]>=0] 
@@ -196,7 +200,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/AmajScale.wav"
+    testfile = "sounds/demonstest.wav"
     bpm = 60    
 
 

@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from scipy.signal import find_peaks
 from music21 import *
 from collections import Counter
-
+import tfr
 
 def matchFrequencyToNote(frequency):
     frequency = min(listFrequencies, key=lambda x:abs(x-frequency))
@@ -318,12 +318,16 @@ bpm = 60
 
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
+signal_frames = tfr.SignalFrames(testfile, frame_size=4096, hop_size=256)
+x_spectrogram = tfr.Spectrogram(signal_frames).reassigned()
 signal = np.transpose(signal)
 signal = np.pad(signal,pad_width=[250,250], mode='constant')
 signal = np.transpose(signal)
 #if stereo convert to mono https://stackoverflow.com/questions/30401042/stereo-to-mono-wav-in-python
 if wave.open(testfile).getnchannels()==2:
     signal = signal.sum(axis=1)/2 
+
+
 
 fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True)
 
@@ -339,12 +343,12 @@ freqs = librosa.fft_frequencies(sr=44100,n_fft=window_size)
 
 
 #FFT = librosa.amplitude_to_db(FFT,ref=np.max)   
-initial = np.copy(FFT)        
+x_spectrogram = np.transpose(x_spectrogram) + 121
+initial = np.copy(x_spectrogram)        
 finalTotal = []
 
 ax1 =plt.subplot(1, 2, 1)
 displaySpectrogram(initial,ax1)
-
 
 d_down =np.abs(scipy.signal.decimate(initial,2,axis=0))
 pad_size = len(initial) - len(d_down)
@@ -356,18 +360,18 @@ pad_size = len(initial) - len(d_down2)
 d_down2 = np.pad(d_down2,((0,pad_size),(0,0)),constant_values=0)
 
 
-finalTotal = initial*d_down
+#finalTotal = initial*d_down
 
-finalTotal *= 100.0/finalTotal.max()
+#finalTotal *= 100.0/finalTotal.max()
 
 ax4=plt.subplot(1, 2, 2)
-#total = librosa.amplitude_to_db(total,ref=np.max)   
-displaySpectrogram(finalTotal,ax4)
+#x_spectrogram = librosa.amplitude_to_db(-x_spectrogram,ref=np.max)   
+#displaySpectrogram(finalTotal,ax4)
 plt.show()
 
-prominence = 5
-height = 5
-D_trans = np.transpose(finalTotal)
+prominence = 10
+height = 50
+D_trans = np.transpose(initial)
 output = loopThroughOnset(D_trans)
 #transpose matrix so that time goes along x axis and range of freqs goes y axis. D_trans[x][y]
 

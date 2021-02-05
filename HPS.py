@@ -272,7 +272,7 @@ timeOfNotes = []
 
 
 
-testfile = "sounds/Fireflies.wav"
+testfile = "sounds/river.wav"
 bpm = 60    
 
 
@@ -288,7 +288,7 @@ if wave.open(testfile).getnchannels()==2:
 
 
 bpm = librosa.beat.tempo(y=signal, sr=44100,hop_length=256)
-hop_length = 128 #increment of sample steps
+hop_length = 256 #increment of sample steps
 window_size= 8192*2 #detail of fft
 
 
@@ -313,14 +313,20 @@ for x in range(1,len(splitSignals)):
 
 
     #FFT = librosa.amplitude_to_db(FFT,ref=np.max) 
-    #print(FFT)
-    #FFT = filterPeaks(FFT)
-    #print(FFT)
     initial = np.copy(FFT)
     initial *= 100.0/initial.max() # normalize
     ax1 =plt.subplot(1, 2, 1)
     displaySpectrogram(initial,ax1)
     ax4=plt.subplot(1, 2, 2)
+    test = np.transpose(initial)
+    peaks, _ = find_peaks(test[0],prominence=5,height=15) 
+    print(len(peaks))
+    if(len(peaks)<5):
+        hps_iteration= 1
+    elif(len(peaks)<=15):
+        hps_iteration=2
+    else:
+        hps_iteration=3
 
     hps_signal = HPS(initial,hps_iteration)
     hps_signal *= 100.0/hps_signal.max() # normalize
