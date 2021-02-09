@@ -370,7 +370,7 @@ ax4=plt.subplot(1, 2, 2)
 plt.show()
 
 prominence = 10
-height = 50
+height = 15
 D_trans = np.transpose(initial)
 output = loopThroughOnset(D_trans)
 #transpose matrix so that time goes along x axis and range of freqs goes y axis. D_trans[x][y]

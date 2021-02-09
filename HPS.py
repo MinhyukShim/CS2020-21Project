@@ -272,7 +272,7 @@ timeOfNotes = []
 
 
 
-testfile = "sounds/river.wav"
+testfile = "sounds/minuetgmajor.wav"
 bpm = 60    
 
 
@@ -295,7 +295,7 @@ window_size= 8192*2 #detail of fft
 splits = librosa.onset.onset_detect(y=signal,sr=44100,hop_length=hop_length, units='samples',backtrack=True) #uses onset detection to find where to split
 
 prominence = 10
-height = 15
+height = 10
 hps_iteration = 2
 splitSignals= np.array_split(signal, splits)
 output = []
@@ -321,9 +321,9 @@ for x in range(1,len(splitSignals)):
     test = np.transpose(initial)
     peaks, _ = find_peaks(test[0],prominence=5,height=15) 
     print(len(peaks))
-    if(len(peaks)<5):
+    if(len(peaks)<=5):
         hps_iteration= 1
-    elif(len(peaks)<=15):
+    elif(len(peaks)<=12):
         hps_iteration=2
     else:
         hps_iteration=3
