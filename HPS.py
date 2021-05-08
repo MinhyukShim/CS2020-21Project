@@ -93,7 +93,7 @@ def identifyNotes(noteSlice):
 
 
 def displaySpectrogram(spectrogram,ax):
-    img = librosa.display.specshow(spectrogram, y_axis='log', sr=44100, hop_length=hop_length,
+    img = librosa.display.specshow(spectrogram, y_axis='log', sr=s_rate, hop_length=hop_length,
             x_axis='time', ax=ax)
     #plt.vlines(splits/44100,0,20000,colors=[0.2,1.0,0.2,0.4])
     ax.set(title='Log-frequency power spectrogram')
@@ -124,7 +124,7 @@ def generateBeatTimings(bpm):
     return quarterNote
 
 
-def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
+def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes,heldList):
     
     quarterNoteLength =generateBeatTimings(bpm)
     trebleStream = stream.Stream()
@@ -148,17 +148,25 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
         timing = getClosestTiming(timeOfNotes,x,quarterNoteLength)
         if(x==len(namedNotes)-1):
             timing = 4
+        print(heldList[x])
         for y in range(len(namedNotes[x][0])):
             #midi numbers offset by +20 https://www.inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
             currentNote = utils.noteNameToNumber(namedNotes[x][0][y],frequencyNames) + 20
-            currentNote = pitch.Pitch(currentNote)
-            if(currentNote.accidental.name == "natural"):
-                currentNote.accidental = None
-            #print(currentNote.accidental.name)
-            if(utils.noteNameToNumber(namedNotes[x][0][y],frequencyNames) + 20 <60):
-                bassList.append(currentNote)
-            else:
-                noteList.append(currentNote)
+            print(currentNote)
+            hold = False
+            for z in range(len(heldList[x])):
+                if(heldList[x][z][0]["noteNum"]==currentNote-21 and heldList[x][z][1]=="hold"):
+                    hold = True
+                    print("held")
+            if(hold==False):
+                currentNote = pitch.Pitch(currentNote)
+                if(currentNote.accidental.name == "natural"):
+                    currentNote.accidental = None
+                #print(currentNote.accidental.name)
+                if(utils.noteNameToNumber(namedNotes[x][0][y],frequencyNames) + 20 <60):
+                    bassList.append(currentNote)
+                else:
+                    noteList.append(currentNote)
 
 
         if(len(bassList)==0):
@@ -182,7 +190,7 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
             trebleStream.append(c1)
 
 
-
+    #combineHeldNotes(trebleStream,bassStream)
     s = stream.Score()
     s.insert(0, trebleStream)
     s.insert(0, bassStream)
@@ -190,6 +198,18 @@ def convertToXML(namedNotes,bpm,keySignature,frequencyNames,timeOfNotes):
     s.insert(staffGroup1)
     s.write("musicxml", "test")
 
+def combineHeldNotes(trebleStream,bassStream):
+    for currentNote in trebleStream.notes:
+        for x in range(len(currentNote)):
+            print(currentNote[x].pitch.midi)
+            print(currentNote[x].duration.quarterLength)
+            if(currentNote[x].pitch.midi==63):
+                currentNote[x].duration.quarterLength = 2.0
+    print("A")
+    for currentNote in trebleStream.notes:
+        for x in range(len(currentNote)):
+            print(currentNote[x].pitch.midi)
+            print(currentNote[x].duration.quarterLength)
 
 def keySignatureIdentification(guessedNotes): 
     majorProfile =[6.35,	2.23,	3.48,	2.33,	4.38,	4.09,	2.52,	5.19,	2.39,	3.66,	2.29,	2.88] #http://rnhart.net/articles/key-finding/
@@ -260,6 +280,39 @@ def HPS(inputSignal,iterations):
         total = total* downsamples[x]
     return total
 
+def removeDuplicateNotes(outputList):
+
+    newNoteList = []
+    x=1
+    tempList =[]
+    for a in range(len(outputList[0][1])):
+        tempList.append([outputList[0][1][a],"new"])
+
+    newNoteList.append(tempList)
+    for x in range(len(outputList)-1):
+        tempList =[]
+        currentSlice = outputList[x][1]
+        previousSlice = outputList[x-1][1]
+        print(currentSlice)
+        print(previousSlice)
+        print("")
+        for y in range(len(currentSlice)):
+            currentNote = currentSlice[y]["noteNum"]
+            currentDecibel = currentSlice[y]["decibel"]
+            hold = False
+            for z in range(len(previousSlice)):
+                if(previousSlice[z]["noteNum"] == currentNote):
+                    if(previousSlice[z]["decibel"]-10>currentDecibel):
+                        hold = True
+
+            if(hold==True):
+                tempList.append([currentSlice[y],"hold"])
+            else:
+                tempList.append([currentSlice[y],"new"])
+        newNoteList.append(tempList)
+    return newNoteList
+
+
 
 us = environment.UserSettings()
 us['musicxmlPath'] = 'C:\\Program Files\\MuseScore 3\\bin\\MuseScore3.exe'
@@ -272,12 +325,13 @@ timeOfNotes = []
 
 
 
-testfile = "sounds/minuetgmajor.wav"
+testfile = "sounds/howls.wav"
 bpm = 60    
 
 
 
 s_rate, signal = wavfile.read(testfile) #read the file and extract the sample rate and signal.
+print(s_rate)
 signal = np.transpose(signal)
 signal = np.pad(signal,pad_width=[250,250], mode='constant') # pad
 signal = np.transpose(signal)
@@ -287,19 +341,28 @@ if wave.open(testfile).getnchannels()==2:
 
 
 
-bpm = librosa.beat.tempo(y=signal, sr=44100,hop_length=256)
+bpm = librosa.beat.tempo(y=signal, sr=s_rate,hop_length=256)
 hop_length = 256 #increment of sample steps
 window_size= 8192*2 #detail of fft
 
 
-splits = librosa.onset.onset_detect(y=signal,sr=44100,hop_length=hop_length, units='samples',backtrack=True) #uses onset detection to find where to split
+splits = librosa.onset.onset_detect(y=signal,sr=s_rate,hop_length=hop_length, units='samples',backtrack=True) #uses onset detection to find where to split
 
 prominence = 10
 height = 10
-hps_iteration = 2
+hps_iteration_list = [5,15]
+#hps_iteration_list = [1,1000]
 splitSignals= np.array_split(signal, splits)
 output = []
-
+FFT = np.abs(librosa.stft(signal, n_fft=window_size, hop_length=hop_length,center=False))  
+'''    
+hps_signal = HPS(FFT,3)
+hps_signal *= 100.0/hps_signal.max() # normalize
+D = librosa.amplitude_to_db(hps_signal,ref=np.max)   
+fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True)
+axa =plt.subplot(1, 1, 1)
+displaySpectrogram(D,axa)
+plt.show()'''
 
 for x in range(1,len(splitSignals)):
     fig, ax = plt.subplots(nrows=1, ncols=1, sharex=True)
@@ -309,28 +372,28 @@ for x in range(1,len(splitSignals)):
         splitSignals[x] = np.pad(splitSignals[x],pad_width=[0,padding_size], mode='constant') # pad
         splitSignals[x] = np.transpose(splitSignals[x])
     FFT = np.abs(librosa.stft(splitSignals[x], n_fft=window_size, hop_length=hop_length,center=False))
-    freqs = librosa.fft_frequencies(sr=44100,n_fft=window_size)
+    freqs = librosa.fft_frequencies(sr=s_rate,n_fft=window_size)
 
 
     #FFT = librosa.amplitude_to_db(FFT,ref=np.max) 
     initial = np.copy(FFT)
     initial *= 100.0/initial.max() # normalize
     ax1 =plt.subplot(1, 2, 1)
-    displaySpectrogram(initial,ax1)
+    #displaySpectrogram(initial,ax1)
     ax4=plt.subplot(1, 2, 2)
     test = np.transpose(initial)
     peaks, _ = find_peaks(test[0],prominence=5,height=15) 
     print(len(peaks))
-    if(len(peaks)<=5):
+    if(len(peaks)<=hps_iteration_list[0]):
         hps_iteration= 1
-    elif(len(peaks)<=12):
+    elif(len(peaks)<=hps_iteration_list[1]):
         hps_iteration=2
     else:
         hps_iteration=3
 
     hps_signal = HPS(initial,hps_iteration)
     hps_signal *= 100.0/hps_signal.max() # normalize
-    displaySpectrogram(hps_signal,ax4)
+    #displaySpectrogram(hps_signal,ax4)
 
     d_trans = np.transpose(hps_signal)
 
@@ -342,12 +405,13 @@ for x in range(1,len(splitSignals)):
         for y in range(len(noteList)):
             noteDecibels.append(noteList[y])
             finalNotes.append(noteList[y]["noteName"])    
-    print(cleanNoteList(noteDecibels))
-    print(cleanNoteQuiet(noteDecibels))
-    print(" ")
+    #print(cleanNoteList(noteDecibels))
+    #print(cleanNoteQuiet(noteDecibels))
+    #print(" ")
     output.append([finalNotes,cleanNoteList(noteDecibels),cleanNoteQuiet(noteDecibels)])
-    #plt.show()
-
+    
+#print(output)
+heldList = removeDuplicateNotes(output)
 
 timeOfNotes = []
 for x in range(len(splits)):
@@ -368,6 +432,6 @@ circleOfFifths = np.concatenate([circleOfFifthsMaj, circleOfFifthsMin])
 
 print(circleOfFifths[keyValue],majmin)
 
-convertToXML(output,bpm,int(circleOfFifths[keyValue]),frequencyNames,timeOfNotes)
+convertToXML(output,bpm,int(circleOfFifths[keyValue]),frequencyNames,timeOfNotes,heldList)
 #transpose matrix so that time goes along x axis and range of freqs goes y axis. D_trans[x][y]
 

@@ -81,10 +81,10 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
 
     total =HPS(FFT,2)
     total = utils.normalizeFFT(total,freqs)
-    peaks, _ = find_peaks(total,prominence=0.05, height=0.05) 
+    peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
     peaks = [x for x in peaks if freqs[x]>=0] 
     #[[Freq,Amplitude]] get the frequency of the peaks and the amplitutde. Ascending frequency.
-    freqAmp = utils.createListOfPeaks(peaks,freqs,total) 
+    freqAmp = utils.createListOfPeaks(peaks,freqs,FFT) 
 
 
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
@@ -99,7 +99,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     naiveGuess(closestNoteList,guessedNotes,namedNotes)
     #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
-    #plotFFT(freqs,total,peaks)
+    #plotFFT(freqs,FFT,peaks)
 
 def generateBeatTimings(bpm):
     quarterNote = 60/(bpm)
@@ -200,7 +200,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/demonstest.wav"
+    testfile = "sounds/minuetgmajor.wav"
     bpm = 60    
 
 

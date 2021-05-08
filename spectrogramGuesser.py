@@ -349,7 +349,7 @@ prominence = 20
 height = 20
 
 padding = "sounds/padding.wav"
-testfile = "sounds/furelise.wav"
+testfile = "sounds/AmajScale.wav"
 bpm = 60    
 
 
