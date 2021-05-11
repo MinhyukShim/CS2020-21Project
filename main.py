@@ -22,7 +22,7 @@ def plotFFT(freqs,FFT,peaks):
     plt.plot(freqs[peaks],FFT[peaks], "x")  #mark peaks with x
 
     axes = plt.gca()
-    axes.set_xlim([0,freqs[peaks[len(peaks)-1]]+250])   #limit x axis                         
+    axes.set_xlim([0,2750])   #limit x axis                         
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (Relative)')
     plt.show()
@@ -77,11 +77,13 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     FFT = abs(scipy.fft.fft(signal)) #FFT the signal
     
     freqs = scipy.fft.fftfreq(len(FFT), (1.0/s_rate)) #get increments of frequencies scaled with the sample rate of the audio
+    print("freqs")
+    print(freqs[10])
     FFT = utils.normalizeFFT(FFT,freqs) #normalize the FFT graph so that the largest peak has an amplitude of 1.0
 
     total =HPS(FFT,2)
     total = utils.normalizeFFT(total,freqs)
-    peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05) 
+    peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05,distance=20) 
     peaks = [x for x in peaks if freqs[x]>=0] 
     #[[Freq,Amplitude]] get the frequency of the peaks and the amplitutde. Ascending frequency.
     freqAmp = utils.createListOfPeaks(peaks,freqs,FFT) 
@@ -90,7 +92,7 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
 
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
-    #print(closestNoteList)
+    print(closestNoteList)
     #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
     #closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
 
@@ -99,7 +101,11 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     naiveGuess(closestNoteList,guessedNotes,namedNotes)
     #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
-    #plotFFT(freqs,FFT,peaks)
+    plotFFT(freqs,FFT,peaks)
+
+    peaks, _ = find_peaks(total,prominence=0.05, height=0.05,distance=20) 
+    peaks = [x for x in peaks if freqs[x]>=0] 
+    plotFFT(freqs,total,peaks)
 
 def generateBeatTimings(bpm):
     quarterNote = 60/(bpm)
@@ -200,7 +206,7 @@ def main():
     #0 if need to do multi slice analysis. (long files)
     singleSlice = 0
 
-    testfile = "sounds/minuetgmajor.wav"
+    testfile = "sounds/Singletons/Fdim.wav"
     bpm = 60    
 
 
