@@ -1,4 +1,6 @@
-     
+#Most of this code was copied over from the HPS algorithm.
+#Mostly used to test the spectrogram guesser.
+# was not very successful.
 import scipy.io.wavfile as wavfile
 import scipy
 import scipy.fftpack as fftpk

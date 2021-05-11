@@ -27,7 +27,7 @@ def plotFFT(freqs,FFT,peaks):
     plt.ylabel('Amplitude (Relative)')
     plt.show()
 
-
+#naive simple guess using thresholding and hand distance.
 def naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes):
     guess,guessB = naiveGuesser.makeGuess(closestNoteListNoHarmonics)
 
@@ -46,6 +46,8 @@ def naiveGuess(closestNoteListNoHarmonics,guessedNotes,namedNotes):
     nameGuess= [row[0] for row in guess] + [row[0] for row in guessB]
     namedNotes.append(nameGuess)
 
+
+#attempted genetic geuss algorithm (it doesnt work too well and works way too slowly.)
 def geneticGuess(closestNoteListSorted,guessedNotes,namedNotes):
     #print(closestNoteListSorted)
     guess = geneticGuesser.makeGuess(closestNoteListSorted)
@@ -56,6 +58,7 @@ def geneticGuess(closestNoteListSorted,guessedNotes,namedNotes):
     namedNotes.append(guess)
 
 
+#used for display purposes.
 def HPS(inputSignal,iterations):
     downsamples = []
     for x in range(iterations):
@@ -81,8 +84,6 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     print(freqs[10])
     FFT = utils.normalizeFFT(FFT,freqs) #normalize the FFT graph so that the largest peak has an amplitude of 1.0
 
-    total =HPS(FFT,2)
-    total = utils.normalizeFFT(total,freqs)
     peaks, _ = find_peaks(FFT,prominence=0.05, height=0.05,distance=20) 
     peaks = [x for x in peaks if freqs[x]>=0] 
     #[[Freq,Amplitude]] get the frequency of the peaks and the amplitutde. Ascending frequency.
@@ -92,20 +93,13 @@ def signalToNote(s_rate, signal,listFrequencies,frequencyNames,guessedNotes,name
     #use freqAmp and find the closest matching note for each element. [[noteName, noteNumber, amp, hz]]
 
     closestNoteList = utils.matchFreqToNote(freqAmp,frequencyNames,listFrequencies)
-    print(closestNoteList)
-    #closestNoteList= utils.multiplyDifference(freqAmp,closestNoteList,listFrequencies)
-    #closestNoteListNoHarmonics = utils.removeHarmonics(closestNoteList,listFrequencies)
+
 
     closestNoteListSorted = sorted(closestNoteList.copy(),key=lambda x: x[2], reverse=True)
-    #print(closestNoteListNoHarmonics)
     naiveGuess(closestNoteList,guessedNotes,namedNotes)
     #geneticGuess(closestNoteListSorted,guessedNotes,namedNotes)
     
     plotFFT(freqs,FFT,peaks)
-
-    peaks, _ = find_peaks(total,prominence=0.05, height=0.05,distance=20) 
-    peaks = [x for x in peaks if freqs[x]>=0] 
-    plotFFT(freqs,total,peaks)
 
 def generateBeatTimings(bpm):
     quarterNote = 60/(bpm)

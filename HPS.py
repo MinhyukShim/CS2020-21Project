@@ -1,6 +1,8 @@
 # The best algorithm tested so far.
 # Uses the HPS algorithm talked about in the report.
 # Reduces a lot of false positives.  
+# had to dynamically adjust the number of HPS iterations.
+
 
 
 import scipy.io.wavfile as wavfile
